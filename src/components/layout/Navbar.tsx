@@ -26,6 +26,7 @@ import {
   BookOpen,
   Home,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
   { href: "/", label: "Home", icon: Home },
@@ -35,10 +36,7 @@ const navLinks = [
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  // Mock auth state — will be replaced with real auth later
-  const isAuthenticated = false;
-  const user = null as { name: string; email: string } | null;
+  const { user, isAuthenticated, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -71,7 +69,7 @@ export function Navbar() {
                 className="relative flex h-9 w-9 items-center justify-center rounded-full hover:bg-accent focus:outline-none"
               >
                 <Avatar className="h-9 w-9">
-                  <AvatarFallback className="bg-primary text-primary-foreground">
+                  <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                     {user.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -80,13 +78,16 @@ export function Navbar() {
                 <div className="flex items-center gap-2 p-2">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium">{user.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground truncate">
                       {user.email}
                     </p>
                   </div>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout
                 </DropdownMenuItem>
@@ -137,13 +138,13 @@ export function Navbar() {
                 <>
                   <div className="flex items-center gap-3 px-3 py-2">
                     <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-primary text-primary-foreground">
+                      <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                         {user.name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
+                    <div className="truncate">
                       <p className="text-sm font-medium">{user.name}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground truncate">
                         {user.email}
                       </p>
                     </div>
@@ -151,7 +152,10 @@ export function Navbar() {
                   <Button
                     variant="ghost"
                     className="justify-start text-destructive hover:text-destructive"
-                    onClick={() => setMobileOpen(false)}
+                    onClick={() => {
+                      logout();
+                      setMobileOpen(false);
+                    }}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout
