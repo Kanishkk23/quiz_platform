@@ -1,7 +1,10 @@
+import { LeaderboardView } from "@/components/leaderboard/LeaderboardView";
+
+export const metadata = {
+  title: "Live Leaderboard — QuizPlatform",
+  description: "Check the live standings and top performers on QuizPlatform.",
+};
+
 export default function LeaderboardPage() {
-  return (
-    <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4">
-      <p className="text-muted-foreground">Leaderboard — coming soon</p>
-    </div>
-  );
+  return <LeaderboardView />;
 }
