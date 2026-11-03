@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { mockQuizzes, mockQuestions } from "@/data/mock";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,6 +15,8 @@ import {
   BookOpen,
   ArrowRight,
   HelpCircle,
+  Filter,
+  Share2,
 } from "lucide-react";
 
 interface QuizResultViewProps {
@@ -34,6 +36,7 @@ interface StoredResult {
 export function QuizResultView({ quizId }: QuizResultViewProps) {
   const [result, setResult] = useState<StoredResult | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [reviewFilter, setReviewFilter] = useState<"all" | "correct" | "incorrect" | "skipped">("all");
 
   const quiz = useMemo(() => {
     return mockQuizzes.find((q) => q.id === quizId);
@@ -78,8 +81,12 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
 
   const correctCount = userScore;
   const answeredCount = result ? Object.keys(result.answers).length : 0;
-  const incorrectCount = answeredCount - correctCount;
-  const unansweredCount = totalQuestions - answeredCount;
+  const incorrectCount = Math.max(0, answeredCount - correctCount);
+  const unansweredCount = Math.max(0, totalQuestions - answeredCount);
+
+  const correctPercent = Math.round((correctCount / totalQuestions) * 100);
+  const incorrectPercent = Math.round((incorrectCount / totalQuestions) * 100);
+  const skippedPercent = Math.max(0, 100 - correctPercent - incorrectPercent);
 
   const minutes = Math.floor(timeTaken / 60);
   const seconds = timeTaken % 60;
@@ -110,6 +117,18 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
   const performance = getPerformanceBadge();
   const title = result?.quizTitle || quiz?.title || "Quiz Result";
 
+  // Filter questions for review
+  const filteredQuestions = questions.filter((question) => {
+    const userSelected = result?.answers?.[question.id];
+    const isCorrect = userSelected === question.correctOptionId;
+    const isAnswered = !!userSelected;
+
+    if (reviewFilter === "correct") return isCorrect;
+    if (reviewFilter === "incorrect") return isAnswered && !isCorrect;
+    if (reviewFilter === "skipped") return !isAnswered;
+    return true;
+  });
+
   return (
     <div className="container mx-auto px-4 py-10 max-w-4xl">
       {/* Result Hero Header */}
@@ -124,13 +143,13 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
           </Badge>
 
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
-            Quiz Completed!
+            Quiz Result Summary
           </h1>
           <p className="text-muted-foreground text-sm max-w-md mx-auto">
             {title} &bull; {performance.message}
           </p>
 
-          {/* Score Display */}
+          {/* Big Score Display */}
           <div className="mt-6 flex flex-col items-center justify-center">
             <div className="text-5xl sm:text-6xl font-black tracking-tight text-primary">
               {percentage}%
@@ -147,7 +166,7 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
             <div className="rounded-xl border bg-card p-3 sm:p-4">
               <div className="flex items-center justify-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-semibold mb-1">
                 <CheckCircle2 className="h-4 w-4" />
-                Correct
+                Correct Answers
               </div>
               <div className="text-xl sm:text-2xl font-bold">{correctCount}</div>
             </div>
@@ -155,7 +174,7 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
             <div className="rounded-xl border bg-card p-3 sm:p-4">
               <div className="flex items-center justify-center gap-1.5 text-rose-600 dark:text-rose-400 text-xs font-semibold mb-1">
                 <XCircle className="h-4 w-4" />
-                Incorrect
+                Incorrect Answers
               </div>
               <div className="text-xl sm:text-2xl font-bold">{incorrectCount}</div>
             </div>
@@ -177,8 +196,55 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
             </div>
           </div>
 
+          {/* Segmented Result Breakdown Bar */}
+          <div className="mt-6 space-y-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
+              <span>Answer Distribution Breakdown</span>
+              <span>{totalQuestions} Questions Total</span>
+            </div>
+            <div className="h-3 w-full rounded-full bg-muted overflow-hidden flex shadow-inner">
+              {correctPercent > 0 && (
+                <div
+                  style={{ width: `${correctPercent}%` }}
+                  className="bg-emerald-500 h-full transition-all"
+                  title={`Correct: ${correctCount} (${correctPercent}%)`}
+                />
+              )}
+              {incorrectPercent > 0 && (
+                <div
+                  style={{ width: `${incorrectPercent}%` }}
+                  className="bg-rose-500 h-full transition-all"
+                  title={`Incorrect: ${incorrectCount} (${incorrectPercent}%)`}
+                />
+              )}
+              {skippedPercent > 0 && (
+                <div
+                  style={{ width: `${skippedPercent}%` }}
+                  className="bg-slate-400/50 h-full transition-all"
+                  title={`Skipped: ${unansweredCount} (${skippedPercent}%)`}
+                />
+              )}
+            </div>
+            <div className="flex items-center gap-4 text-[11px] text-muted-foreground pt-1">
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                Correct: {correctCount}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-rose-500" />
+                Incorrect: {incorrectCount}
+              </span>
+              {unansweredCount > 0 && (
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-slate-400" />
+                  Skipped: {unansweredCount}
+                </span>
+              )}
+            </div>
+          </div>
+
           {/* Action buttons */}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href={`/quizzes/${quizId}`}>
               <Button variant="outline" className="gap-2">
                 <RotateCcw className="h-4 w-4" />
@@ -194,28 +260,66 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
               </Button>
             </Link>
 
-            <Link href="/quizzes">
-              <Button variant="ghost" className="gap-2">
-                <BookOpen className="h-4 w-4" />
-                Browse More Quizzes
+            <Link href="/profile">
+              <Button variant="secondary" className="gap-2">
+                My Profile History
               </Button>
             </Link>
           </div>
         </CardContent>
       </Card>
 
-      {/* Answer Key Review Section (if questions exist) */}
+      {/* Answer Key Review Section */}
       {questions.length > 0 && (
         <div className="space-y-4">
-          <div>
-            <h2 className="text-xl font-bold tracking-tight">Answer Review</h2>
-            <p className="text-xs text-muted-foreground">
-              Review each question, your selected option, and the correct answer.
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-bold tracking-tight">Answer Review & Explanations</h2>
+              <p className="text-xs text-muted-foreground">
+                Detailed comparison showing your submitted answers against correct solutions.
+              </p>
+            </div>
+
+            {/* Filter pills */}
+            <div className="flex items-center gap-1 rounded-lg border bg-muted/40 p-1 text-xs">
+              <button
+                type="button"
+                onClick={() => setReviewFilter("all")}
+                className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+                  reviewFilter === "all"
+                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                All ({questions.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setReviewFilter("correct")}
+                className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+                  reviewFilter === "correct"
+                    ? "bg-background text-emerald-600 dark:text-emerald-400 shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Correct ({correctCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setReviewFilter("incorrect")}
+                className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+                  reviewFilter === "incorrect"
+                    ? "bg-background text-rose-600 dark:text-rose-400 shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Incorrect ({incorrectCount})
+              </button>
+            </div>
           </div>
 
           <div className="space-y-4">
-            {questions.map((question, idx) => {
+            {filteredQuestions.map((question, idx) => {
               const userSelectedOptionId = result?.answers?.[question.id];
               const isCorrect = userSelectedOptionId === question.correctOptionId;
               const isAnswered = !!userSelectedOptionId;
@@ -274,12 +378,12 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
                             <span>{opt.text}</span>
                             {isOptionCorrect && (
                               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                                Correct
+                                Correct Answer
                               </span>
                             )}
                             {isOptionSelected && !isOptionCorrect && (
                               <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
-                                Your answer
+                                Your Selection
                               </span>
                             )}
                           </div>
@@ -290,6 +394,12 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
                 </Card>
               );
             })}
+
+            {filteredQuestions.length === 0 && (
+              <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+                No questions in this filter category.
+              </div>
+            )}
           </div>
         </div>
       )}
