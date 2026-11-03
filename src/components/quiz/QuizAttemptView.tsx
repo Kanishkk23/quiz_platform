@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Clock, Hourglass } from "lucide-react";
 
 interface QuizAttemptViewProps {
   quizId: string;
@@ -26,17 +26,34 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
   const router = useRouter();
 
   const quiz = useMemo(() => {
-    return mockQuizzes.find((q) => q.id === quizId) || mockQuizzes[0];
+    return mockQuizzes.find((q) => q.id === quizId) || {
+      id: quizId,
+      title: "Quiz " + quizId,
+      description: "Interactive knowledge evaluation",
+      category: "General",
+      difficulty: "medium" as const,
+      questionCount: 10,
+      timeLimit: 600,
+      timerMode: "quiz" as const,
+      questionTimeLimit: 30,
+      createdAt: new Date().toISOString(),
+    };
   }, [quizId]);
 
   const questions = useMemo(() => {
-    return mockQuestions[quizId] || mockQuestions["1"] || [];
+    return mockQuestions[quizId] || [];
   }, [quizId]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [startTime] = useState<number>(() => Date.now());
+
+  // Timer mode state: can be per-quiz (overall) or per-question
+  const [timerMode, setTimerMode] = useState<"quiz" | "question">(
+    quiz.timerMode || "quiz"
+  );
+  const perQuestionTimeLimit = quiz.questionTimeLimit || 30;
 
   // Load saved progress if any
   useEffect(() => {
@@ -82,26 +99,53 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
       quizTitle: quiz.title,
       answers,
       score,
-      totalQuestions,
+      totalQuestions: totalQuestions || 10,
       timeTaken,
       completedAt: new Date().toISOString(),
+      timerMode,
     };
 
     localStorage.setItem(`quiz_result_${quiz.id}`, JSON.stringify(attemptResult));
     localStorage.removeItem(`quiz_answers_${quiz.id}`);
 
-    router.push(`/quizzes/${quiz.id}/result`);
-  }, [answers, questions, quiz, router, startTime, totalQuestions]);
+    // Append to global attempt history (for profile page)
+    try {
+      const existingHistoryStr = localStorage.getItem("quiz_attempt_history");
+      const history = existingHistoryStr ? JSON.parse(existingHistoryStr) : [];
+      history.unshift({
+        id: "att_" + Date.now(),
+        ...attemptResult,
+      });
+      localStorage.setItem("quiz_attempt_history", JSON.stringify(history));
+    } catch {
+      // ignore
+    }
 
-  const handleTimeUp = useCallback(() => {
+    router.push(`/quizzes/${quiz.id}/result`);
+  }, [answers, questions, quiz, router, startTime, timerMode, totalQuestions]);
+
+  // Handler when per-question timer runs out
+  const handleQuestionTimeUp = useCallback(() => {
+    if (currentIndex < totalQuestions - 1) {
+      setCurrentIndex((prev) => prev + 1);
+    } else {
+      handleFinishAttempt();
+    }
+  }, [currentIndex, totalQuestions, handleFinishAttempt]);
+
+  // Handler when overall quiz timer runs out
+  const handleQuizTimeUp = useCallback(() => {
     setIsSubmitDialogOpen(false);
     handleFinishAttempt();
   }, [handleFinishAttempt]);
 
   if (!currentQuestion) {
     return (
-      <div className="container mx-auto px-4 py-20 text-center">
-        <h2 className="text-2xl font-bold mb-4">Quiz not found</h2>
+      <div className="container mx-auto px-4 py-20 text-center max-w-md">
+        <h2 className="text-2xl font-bold mb-2">No Questions Ready</h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          This quiz doesn&apos;t have any active questions yet. Questions will appear once loaded from the backend.
+        </p>
         <Link href="/quizzes">
           <Button>Back to Quizzes</Button>
         </Link>
@@ -129,15 +173,60 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between sm:justify-end gap-3">
-            <QuizTimer initialSeconds={quiz.timeLimit} onTimeUp={handleTimeUp} />
+          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5">
+            {/* Timer mode switcher pill */}
+            <div className="flex items-center rounded-lg border bg-muted/50 p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setTimerMode("quiz")}
+                className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-medium transition-colors ${
+                  timerMode === "quiz"
+                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                title="Timer counts down total quiz duration"
+              >
+                <Clock className="h-3 w-3" />
+                <span className="hidden sm:inline">Quiz</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTimerMode("question")}
+                className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-medium transition-colors ${
+                  timerMode === "question"
+                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                title="Timer counts down 30s per question"
+              >
+                <Hourglass className="h-3 w-3" />
+                <span className="hidden sm:inline">Per Question</span>
+              </button>
+            </div>
+
+            {/* Active Timer */}
+            {timerMode === "quiz" ? (
+              <QuizTimer
+                mode="quiz"
+                initialSeconds={quiz.timeLimit}
+                onTimeUp={handleQuizTimeUp}
+              />
+            ) : (
+              <QuizTimer
+                mode="question"
+                questionKey={currentIndex}
+                initialSeconds={perQuestionTimeLimit}
+                onTimeUp={handleQuestionTimeUp}
+              />
+            )}
+
             <Button
               size="sm"
               variant="default"
               onClick={() => setIsSubmitDialogOpen(true)}
               className="font-medium"
             >
-              Finish Quiz
+              Finish
             </Button>
           </div>
         </div>

@@ -14,7 +14,9 @@ export interface Quiz {
   category: string;
   difficulty: "easy" | "medium" | "hard";
   questionCount: number;
-  timeLimit: number; // in seconds
+  timeLimit: number; // in seconds for entire quiz
+  timerMode?: "quiz" | "question"; // Support per-quiz or per-question timer
+  questionTimeLimit?: number; // in seconds per question when in question mode
   createdAt: string;
 }
 
