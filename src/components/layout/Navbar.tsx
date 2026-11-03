@@ -29,16 +29,20 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
-const navLinks = [
+const baseNavLinks = [
   { href: "/", label: "Home", icon: Home },
   { href: "/quizzes", label: "Quizzes", icon: BookOpen },
   { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
-  { href: "/profile", label: "Profile", icon: UserCheck },
 ];
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
+
+  // Show profile navigation link ONLY when user is logged in
+  const visibleNavLinks = isAuthenticated
+    ? [...baseNavLinks, { href: "/profile", label: "Profile", icon: UserCheck }]
+    : baseNavLinks;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -51,7 +55,7 @@ export function Navbar() {
 
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-1 md:flex">
-          {navLinks.map((link) => (
+          {visibleNavLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -130,7 +134,7 @@ export function Navbar() {
               QuizPlatform
             </SheetTitle>
             <nav className="mt-6 flex flex-col gap-1">
-              {navLinks.map((link) => (
+              {visibleNavLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}

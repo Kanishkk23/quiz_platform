@@ -97,6 +97,28 @@ export function ProfileView() {
   const displayEmail = user?.email || "guest@quizplatform.local";
   const initial = displayName.charAt(0).toUpperCase();
 
+  if (mounted && !isAuthenticated) {
+    return (
+      <div className="container mx-auto px-4 py-20 text-center max-w-md">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
+          <UserIcon className="h-7 w-7" />
+        </div>
+        <h2 className="text-2xl font-bold tracking-tight mb-2">Please Sign In</h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          Your profile and attempt history are private. Please sign in to your account to view your performance metrics.
+        </p>
+        <div className="flex items-center justify-center gap-3">
+          <Link href="/login">
+            <Button>Sign In</Button>
+          </Link>
+          <Link href="/register">
+            <Button variant="outline">Create Account</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-10 max-w-5xl">
       {/* Profile Header Card */}
