@@ -6,7 +6,6 @@ import { mockQuizzes, mockQuestions } from "@/data/mock";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   Trophy,
   CheckCircle2,
@@ -37,11 +36,11 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
   const [mounted, setMounted] = useState(false);
 
   const quiz = useMemo(() => {
-    return mockQuizzes.find((q) => q.id === quizId) || mockQuizzes[0];
+    return mockQuizzes.find((q) => q.id === quizId);
   }, [quizId]);
 
   const questions = useMemo(() => {
-    return mockQuestions[quizId] || mockQuestions["1"] || [];
+    return mockQuestions[quizId] || [];
   }, [quizId]);
 
   useEffect(() => {
@@ -56,14 +55,29 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
     }
   }, [quizId]);
 
+  if (mounted && !result && questions.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-20 text-center max-w-md">
+        <Trophy className="mx-auto h-12 w-12 text-muted-foreground/40 mb-3" />
+        <h2 className="text-2xl font-bold mb-2">No Result Recorded</h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          You haven&apos;t completed this quiz yet or the quiz is not currently available.
+        </p>
+        <Link href="/quizzes">
+          <Button>Browse Quizzes</Button>
+        </Link>
+      </div>
+    );
+  }
+
   // Compute stats
-  const totalQuestions = questions.length || 10;
-  const userScore = result ? result.score : Math.round(totalQuestions * 0.7);
-  const timeTaken = result ? result.timeTaken : 185;
+  const totalQuestions = result ? result.totalQuestions : questions.length || 1;
+  const userScore = result ? result.score : 0;
+  const timeTaken = result ? result.timeTaken : 0;
   const percentage = Math.round((userScore / totalQuestions) * 100);
 
   const correctCount = userScore;
-  const answeredCount = result ? Object.keys(result.answers).length : totalQuestions;
+  const answeredCount = result ? Object.keys(result.answers).length : 0;
   const incorrectCount = answeredCount - correctCount;
   const unansweredCount = totalQuestions - answeredCount;
 
@@ -94,6 +108,7 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
   };
 
   const performance = getPerformanceBadge();
+  const title = result?.quizTitle || quiz?.title || "Quiz Result";
 
   return (
     <div className="container mx-auto px-4 py-10 max-w-4xl">
@@ -112,10 +127,10 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
             Quiz Completed!
           </h1>
           <p className="text-muted-foreground text-sm max-w-md mx-auto">
-            {quiz.title} &bull; {performance.message}
+            {title} &bull; {performance.message}
           </p>
 
-          {/* Big Score Display */}
+          {/* Score Display */}
           <div className="mt-6 flex flex-col items-center justify-center">
             <div className="text-5xl sm:text-6xl font-black tracking-tight text-primary">
               {percentage}%
@@ -164,7 +179,7 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
 
           {/* Action buttons */}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Link href={`/quizzes/${quiz.id}`}>
+            <Link href={`/quizzes/${quizId}`}>
               <Button variant="outline" className="gap-2">
                 <RotateCcw className="h-4 w-4" />
                 Retake Quiz
@@ -189,95 +204,95 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
         </CardContent>
       </Card>
 
-      {/* Answer Key Review Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      {/* Answer Key Review Section (if questions exist) */}
+      {questions.length > 0 && (
+        <div className="space-y-4">
           <div>
             <h2 className="text-xl font-bold tracking-tight">Answer Review</h2>
             <p className="text-xs text-muted-foreground">
               Review each question, your selected option, and the correct answer.
             </p>
           </div>
-        </div>
 
-        <div className="space-y-4">
-          {questions.map((question, idx) => {
-            const userSelectedOptionId = result?.answers?.[question.id];
-            const isCorrect = userSelectedOptionId === question.correctOptionId;
-            const isAnswered = !!userSelectedOptionId;
+          <div className="space-y-4">
+            {questions.map((question, idx) => {
+              const userSelectedOptionId = result?.answers?.[question.id];
+              const isCorrect = userSelectedOptionId === question.correctOptionId;
+              const isAnswered = !!userSelectedOptionId;
 
-            return (
-              <Card key={question.id} className="border shadow-xs">
-                <CardHeader className="p-4 sm:p-5 pb-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
-                        {idx + 1}
-                      </span>
-                      <CardTitle className="text-base font-semibold leading-relaxed">
-                        {question.text}
-                      </CardTitle>
+              return (
+                <Card key={question.id} className="border shadow-xs">
+                  <CardHeader className="p-4 sm:p-5 pb-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
+                          {idx + 1}
+                        </span>
+                        <CardTitle className="text-base font-semibold leading-relaxed">
+                          {question.text}
+                        </CardTitle>
+                      </div>
+
+                      <div className="shrink-0">
+                        {isCorrect ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Correct
+                          </span>
+                        ) : isAnswered ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2.5 py-0.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
+                            <XCircle className="h-3.5 w-3.5" />
+                            Incorrect
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                            Skipped
+                          </span>
+                        )}
+                      </div>
                     </div>
+                  </CardHeader>
 
-                    <div className="shrink-0">
-                      {isCorrect ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          Correct
-                        </span>
-                      ) : isAnswered ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2.5 py-0.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
-                          <XCircle className="h-3.5 w-3.5" />
-                          Incorrect
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                          Skipped
-                        </span>
-                      )}
+                  <CardContent className="p-4 sm:p-5 pt-0 space-y-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                      {question.options.map((opt) => {
+                        const isOptionSelected = userSelectedOptionId === opt.id;
+                        const isOptionCorrect = opt.id === question.correctOptionId;
+
+                        let style = "border-border bg-card text-muted-foreground";
+                        if (isOptionCorrect) {
+                          style = "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold";
+                        } else if (isOptionSelected && !isOptionCorrect) {
+                          style = "border-rose-500/50 bg-rose-500/10 text-rose-700 dark:text-rose-300 line-through";
+                        }
+
+                        return (
+                          <div
+                            key={opt.id}
+                            className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs sm:text-sm ${style}`}
+                          >
+                            <span>{opt.text}</span>
+                            {isOptionCorrect && (
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                                Correct
+                              </span>
+                            )}
+                            {isOptionSelected && !isOptionCorrect && (
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                                Your answer
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="p-4 sm:p-5 pt-0 space-y-2">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
-                    {question.options.map((opt) => {
-                      const isOptionSelected = userSelectedOptionId === opt.id;
-                      const isOptionCorrect = opt.id === question.correctOptionId;
-
-                      let style = "border-border bg-card text-muted-foreground";
-                      if (isOptionCorrect) {
-                        style = "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold";
-                      } else if (isOptionSelected && !isOptionCorrect) {
-                        style = "border-rose-500/50 bg-rose-500/10 text-rose-700 dark:text-rose-300 line-through";
-                      }
-
-                      return (
-                        <div
-                          key={opt.id}
-                          className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs sm:text-sm ${style}`}
-                        >
-                          <span>{opt.text}</span>
-                          {isOptionCorrect && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                              Correct
-                            </span>
-                          )}
-                          {isOptionSelected && !isOptionCorrect && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
-                              Your answer
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

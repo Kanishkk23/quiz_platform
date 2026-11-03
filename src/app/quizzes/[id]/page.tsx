@@ -1,12 +1,5 @@
 import { Suspense } from "react";
 import { QuizAttemptView } from "@/components/quiz/QuizAttemptView";
-import { mockQuizzes } from "@/data/mock";
-
-export function generateStaticParams() {
-  return mockQuizzes.map((quiz) => ({
-    id: quiz.id,
-  }));
-}
 
 interface PageProps {
   params: Promise<{ id: string }>;

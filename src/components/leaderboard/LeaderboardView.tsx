@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { mockLeaderboard as initialLeaderboard } from "@/data/mock";
 import { LeaderboardEntry } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -21,104 +21,15 @@ import {
   Medal,
   Clock,
   Search,
-  Sparkles,
   Radio,
   RefreshCw,
-  TrendingUp,
 } from "lucide-react";
-
-const randomCandidates = [
-  { name: "Devansh Rao", score: 9, timeTaken: 210 },
-  { name: "Tanvi Saxena", score: 8, timeTaken: 290 },
-  { name: "Rohan Kulkarni", score: 10, timeTaken: 330 },
-  { name: "Siddharth Jain", score: 9, timeTaken: 240 },
-  { name: "Aishwarya Iyer", score: 7, timeTaken: 310 },
-  { name: "Mohit Chawla", score: 8, timeTaken: 260 },
-];
 
 export function LeaderboardView() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(initialLeaderboard);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLiveActive, setIsLiveActive] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string>("Just now");
-
-  // Simulated live real-time score additions
-  useEffect(() => {
-    if (!isLiveActive) return;
-
-    const interval = setInterval(() => {
-      // Pick a random event to simulate real-time updates
-      const candidate = randomCandidates[Math.floor(Math.random() * randomCandidates.length)];
-      const newEntry: LeaderboardEntry = {
-        rank: 0,
-        userId: "live_" + Date.now(),
-        userName: candidate.name,
-        score: candidate.score,
-        totalQuestions: 10,
-        timeTaken: candidate.timeTaken + Math.floor(Math.random() * 40 - 20),
-        completedAt: new Date().toISOString(),
-      };
-
-      setLeaderboard((prev) => {
-        // Add new entry, sort by score DESC, then by timeTaken ASC
-        const merged = [...prev, newEntry];
-        const uniqueByName = Array.from(
-          new Map(merged.map((item) => [item.userName, item])).values()
-        );
-
-        uniqueByName.sort((a, b) => {
-          if (b.score !== a.score) {
-            return b.score - a.score;
-          }
-          return a.timeTaken - b.timeTaken;
-        });
-
-        // Reassign ranks
-        return uniqueByName.map((entry, idx) => ({
-          ...entry,
-          rank: idx + 1,
-        }));
-      });
-
-      setLastUpdated(new Date().toLocaleTimeString());
-    }, 12000); // Trigger update periodically
-
-    return () => clearInterval(interval);
-  }, [isLiveActive]);
-
-  const handleManualSimulation = () => {
-    const candidate = randomCandidates[Math.floor(Math.random() * randomCandidates.length)];
-    const newEntry: LeaderboardEntry = {
-      rank: 0,
-      userId: "sim_" + Date.now(),
-      userName: candidate.name,
-      score: 10,
-      totalQuestions: 10,
-      timeTaken: candidate.timeTaken,
-      completedAt: new Date().toISOString(),
-    };
-
-    setLeaderboard((prev) => {
-      const merged = [newEntry, ...prev];
-      const uniqueByName = Array.from(
-        new Map(merged.map((item) => [item.userName, item])).values()
-      );
-
-      uniqueByName.sort((a, b) => {
-        if (b.score !== a.score) {
-          return b.score - a.score;
-        }
-        return a.timeTaken - b.timeTaken;
-      });
-
-      return uniqueByName.map((entry, idx) => ({
-        ...entry,
-        rank: idx + 1,
-      }));
-    });
-
-    setLastUpdated(new Date().toLocaleTimeString());
-  };
+  const [lastUpdated, setLastUpdated] = useState<string>("Ready");
 
   const filteredLeaderboard = leaderboard.filter((entry) =>
     entry.userName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -148,22 +59,12 @@ export function LeaderboardView() {
             Global Leaderboard
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base mt-1">
-            See how top contenders rank by accuracy and speed. Live syncs automatically.
+            See how top contenders rank by accuracy and speed. Ready for live backend data.
           </p>
         </div>
 
-        {/* Live sync controls */}
+        {/* Live sync status */}
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleManualSimulation}
-            className="gap-2"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            Simulate Live Submission
-          </Button>
-
           <Button
             variant={isLiveActive ? "secondary" : "outline"}
             size="sm"
@@ -175,15 +76,14 @@ export function LeaderboardView() {
                 isLiveActive ? "bg-emerald-500 animate-ping" : "bg-muted-foreground"
               }`}
             />
-            {isLiveActive ? "Live Connected" : "Paused"}
+            {isLiveActive ? "Realtime Ready" : "Paused"}
           </Button>
         </div>
       </div>
 
-      {/* Podium Cards for Top 3 */}
+      {/* Podium Cards for Top 3 (only shown if there are at least 3 records) */}
       {topThree.length >= 3 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10 items-end">
-          {/* 2nd Place */}
           {second && (
             <Card className="order-2 md:order-1 border-border/80 bg-gradient-to-t from-slate-500/10 to-card shadow-sm text-center">
               <CardContent className="pt-6 pb-6">
@@ -205,7 +105,6 @@ export function LeaderboardView() {
             </Card>
           )}
 
-          {/* 1st Place Champion */}
           {first && (
             <Card className="order-1 md:order-2 border-amber-500/50 bg-gradient-to-t from-amber-500/15 via-background to-card shadow-lg text-center transform md:-translate-y-3">
               <div className="bg-amber-500 text-amber-950 font-bold text-xs py-1 tracking-wider uppercase">
@@ -227,7 +126,6 @@ export function LeaderboardView() {
             </Card>
           )}
 
-          {/* 3rd Place */}
           {third && (
             <Card className="order-3 border-border/80 bg-gradient-to-t from-amber-700/10 to-card shadow-sm text-center">
               <CardContent className="pt-6 pb-6">
@@ -258,7 +156,7 @@ export function LeaderboardView() {
             <div>
               <CardTitle className="text-xl">Standings</CardTitle>
               <CardDescription className="text-xs">
-                Updated at {lastUpdated}
+                Status: {lastUpdated}
               </CardDescription>
             </div>
 
@@ -352,8 +250,14 @@ export function LeaderboardView() {
 
               {filteredLeaderboard.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground text-sm">
-                    No participants matching &quot;{searchQuery}&quot;
+                  <TableCell colSpan={5} className="h-32 text-center text-muted-foreground text-sm">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Trophy className="h-8 w-8 text-muted-foreground/40" />
+                      <p className="font-medium text-foreground">No leaderboard entries yet</p>
+                      <p className="text-xs text-muted-foreground">
+                        Scores will appear here live once quiz submissions are recorded.
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
               )}
