@@ -25,6 +25,7 @@ import {
   Trophy,
   BookOpen,
   Home,
+  UserCheck,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -32,6 +33,7 @@ const navLinks = [
   { href: "/", label: "Home", icon: Home },
   { href: "/quizzes", label: "Quizzes", icon: BookOpen },
   { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
+  { href: "/profile", label: "Profile", icon: UserCheck },
 ];
 
 export function Navbar() {
@@ -83,6 +85,13 @@ export function Navbar() {
                     </p>
                   </div>
                 </div>
+                <DropdownMenuSeparator />
+                <Link href="/profile">
+                  <DropdownMenuItem className="cursor-pointer flex items-center">
+                    <User className="mr-2 h-4 w-4" />
+                    My Profile & History
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={logout}
@@ -149,9 +158,15 @@ export function Navbar() {
                       </p>
                     </div>
                   </div>
+                  <Link href="/profile" onClick={() => setMobileOpen(false)}>
+                    <Button variant="outline" className="w-full justify-start gap-2 mb-2">
+                      <User className="h-4 w-4" />
+                      View Profile & History
+                    </Button>
+                  </Link>
                   <Button
                     variant="ghost"
-                    className="justify-start text-destructive hover:text-destructive"
+                    className="justify-start text-destructive hover:text-destructive w-full"
                     onClick={() => {
                       logout();
                       setMobileOpen(false);
