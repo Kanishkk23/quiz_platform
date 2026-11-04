@@ -16,7 +16,8 @@ import {
   ArrowRight,
   HelpCircle,
   Filter,
-  Share2,
+  Sparkles,
+  Award,
 } from "lucide-react";
 
 interface QuizResultViewProps {
@@ -90,26 +91,32 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
 
   const minutes = Math.floor(timeTaken / 60);
   const seconds = timeTaken % 60;
-  const formattedTime = `${minutes}m ${seconds}s`;
+  const formattedTime = `${minutes}m ${seconds < 10 ? "0" : ""}${seconds}s`;
 
   const getPerformanceBadge = () => {
-    if (percentage >= 80) {
+    if (percentage >= 90) {
       return {
-        label: "Outstanding Mastery!",
+        label: "🏆 Master Tier • Champion Performance",
         color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-        message: "You displayed remarkable mastery of these concepts.",
+        message: "Incredible accuracy! You have a high chance of securing the #1 Gold spot on the leaderboard.",
+      };
+    } else if (percentage >= 70) {
+      return {
+        label: "🥈 Pro Tier • Podium Contender",
+        color: "bg-[#CC5500]/10 text-[#CC5500] border-[#CC5500]/30",
+        message: "Outstanding work! You have strong grasp of this topic and earned a competitive rank.",
       };
     } else if (percentage >= 50) {
       return {
-        label: "Good Effort!",
+        label: "🥉 Challenger Tier • Solid Attempt",
         color: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
-        message: "Solid work! A bit more practice and you will top the leaderboard.",
+        message: "Good effort! A few targeted review sessions and you will break into the top 3.",
       };
     } else {
       return {
-        label: "Keep Practicing!",
+        label: "🎯 Apprentice Tier • Practice Required",
         color: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
-        message: "Review the question answers below and try again to improve your score.",
+        message: "Review the question solutions below and retake the quiz to level up your standing.",
       };
     }
   };
@@ -131,38 +138,35 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
 
   return (
     <div className="container mx-auto px-4 py-10 max-w-4xl">
-      {/* Result Hero Header */}
-      <Card className="overflow-hidden border shadow-md mb-8">
-        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background p-6 sm:p-8 text-center border-b">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/20 text-primary mb-4 shadow-sm">
-            <Trophy className="h-8 w-8" />
+      {/* Score Summary Hero Card */}
+      <Card className="mb-8 border shadow-sm">
+        <CardHeader className="text-center pb-2">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-2">
+            <Trophy className="h-7 w-7 text-[#CC5500]" />
           </div>
+          <CardTitle className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            Quiz Complete: {title}
+          </CardTitle>
+          <CardDescription className="text-sm">
+            Your performance has been evaluated and recorded for the {title} Leaderboard
+          </CardDescription>
 
-          <Badge variant="outline" className={`mb-3 px-3 py-1 text-xs font-semibold ${performance.color}`}>
-            {performance.label}
-          </Badge>
+          <div className="pt-2">
+            <span
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold border ${performance.color}`}
+            >
+              {performance.label}
+            </span>
+          </div>
+        </CardHeader>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
-            Quiz Result Summary
-          </h1>
-          <p className="text-muted-foreground text-sm max-w-md mx-auto">
-            {title} &bull; {performance.message}
+        <CardContent className="pt-4 pb-6">
+          <p className="text-center text-sm text-muted-foreground mb-6 max-w-md mx-auto">
+            {performance.message}
           </p>
 
-          {/* Big Score Display */}
-          <div className="mt-6 flex flex-col items-center justify-center">
-            <div className="text-5xl sm:text-6xl font-black tracking-tight text-primary">
-              {percentage}%
-            </div>
-            <p className="text-sm font-medium text-muted-foreground mt-1">
-              Final Score: {userScore} / {totalQuestions} Correct
-            </p>
-          </div>
-        </div>
-
-        {/* Quick Stats Grid */}
-        <CardContent className="p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+          {/* Key Metrics Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
             <div className="rounded-xl border bg-card p-3 sm:p-4">
               <div className="flex items-center justify-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-semibold mb-1">
                 <CheckCircle2 className="h-4 w-4" />
@@ -188,7 +192,7 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
             </div>
 
             <div className="rounded-xl border bg-card p-3 sm:p-4">
-              <div className="flex items-center justify-center gap-1.5 text-primary text-xs font-semibold mb-1">
+              <div className="flex items-center justify-center gap-1.5 text-[#CC5500] text-xs font-semibold mb-1">
                 <Clock className="h-4 w-4" />
                 Time Taken
               </div>
@@ -243,7 +247,7 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
             </div>
           </div>
 
-          {/* Action buttons */}
+          {/* Action buttons with Per-Quiz Leaderboard link */}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href={`/quizzes/${quizId}`}>
               <Button variant="outline" className="gap-2">
@@ -252,10 +256,10 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
               </Button>
             </Link>
 
-            <Link href="/leaderboard">
-              <Button className="gap-2">
-                <Trophy className="h-4 w-4" />
-                View Leaderboard
+            <Link href={`/leaderboard?quizId=${quizId}`}>
+              <Button className="gap-2 bg-[#CC5500] hover:bg-[#B34700] text-white">
+                <Trophy className="h-4 w-4 text-white" />
+                View Quiz Leaderboard
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
@@ -274,16 +278,15 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold tracking-tight">Answer Review & Explanations</h2>
+              <h2 className="text-xl font-bold tracking-tight">Review Question Solutions</h2>
               <p className="text-xs text-muted-foreground">
-                Detailed comparison showing your submitted answers against correct solutions.
+                Examine your answers against verified solutions
               </p>
             </div>
 
-            {/* Filter pills */}
-            <div className="flex items-center gap-1 rounded-lg border bg-muted/40 p-1 text-xs">
+            {/* Filter Tabs */}
+            <div className="flex items-center rounded-lg border bg-muted/50 p-1 text-xs">
               <button
-                type="button"
                 onClick={() => setReviewFilter("all")}
                 className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
                   reviewFilter === "all"
@@ -294,112 +297,125 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
                 All ({questions.length})
               </button>
               <button
-                type="button"
                 onClick={() => setReviewFilter("correct")}
                 className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
                   reviewFilter === "correct"
-                    ? "bg-background text-emerald-600 dark:text-emerald-400 shadow-xs font-semibold"
+                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-semibold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Correct ({correctCount})
               </button>
               <button
-                type="button"
                 onClick={() => setReviewFilter("incorrect")}
                 className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
                   reviewFilter === "incorrect"
-                    ? "bg-background text-rose-600 dark:text-rose-400 shadow-xs font-semibold"
+                    ? "bg-rose-500/15 text-rose-700 dark:text-rose-400 font-semibold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Incorrect ({incorrectCount})
               </button>
+              <button
+                onClick={() => setReviewFilter("skipped")}
+                className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+                  reviewFilter === "skipped"
+                    ? "bg-slate-500/15 text-slate-700 dark:text-slate-400 font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Skipped ({unansweredCount})
+              </button>
             </div>
           </div>
 
           <div className="space-y-4">
-            {filteredQuestions.map((question, idx) => {
-              const userSelectedOptionId = result?.answers?.[question.id];
-              const isCorrect = userSelectedOptionId === question.correctOptionId;
-              const isAnswered = !!userSelectedOptionId;
+            {filteredQuestions.map((q, idx) => {
+              const userAnswerId = result?.answers?.[q.id];
+              const isCorrect = userAnswerId === q.correctOptionId;
+              const isSkipped = !userAnswerId;
 
               return (
-                <Card key={question.id} className="border shadow-xs">
-                  <CardHeader className="p-4 sm:p-5 pb-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
-                          {idx + 1}
-                        </span>
-                        <CardTitle className="text-base font-semibold leading-relaxed">
-                          {question.text}
-                        </CardTitle>
-                      </div>
-
-                      <div className="shrink-0">
-                        {isCorrect ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            Correct
-                          </span>
-                        ) : isAnswered ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2.5 py-0.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
-                            <XCircle className="h-3.5 w-3.5" />
-                            Incorrect
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                            Skipped
-                          </span>
-                        )}
-                      </div>
+                <Card
+                  key={q.id}
+                  className={`border transition-colors ${
+                    isCorrect
+                      ? "border-emerald-500/30 bg-emerald-500/[0.02]"
+                      : isSkipped
+                      ? "border-border"
+                      : "border-rose-500/30 bg-rose-500/[0.02]"
+                  }`}
+                >
+                  <CardHeader className="p-4 pb-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        Question {idx + 1}
+                      </span>
+                      {isCorrect ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 gap-1 text-[11px]">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Correct (+10 pts)
+                        </Badge>
+                      ) : isSkipped ? (
+                        <Badge variant="outline" className="text-muted-foreground gap-1 text-[11px]">
+                          <HelpCircle className="h-3 w-3" />
+                          Skipped
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 gap-1 text-[11px]">
+                          <XCircle className="h-3 w-3" />
+                          Incorrect
+                        </Badge>
+                      )}
                     </div>
+                    <CardTitle className="text-base font-semibold pt-1">
+                      {q.text}
+                    </CardTitle>
                   </CardHeader>
+                  <CardContent className="p-4 pt-2 space-y-2">
+                    <div className="grid grid-cols-1 gap-2 pt-1">
+                      {q.options.map((opt) => {
+                        const isUserPick = opt.id === userAnswerId;
+                        const isCorrectAnswer = opt.id === q.correctOptionId;
 
-                  <CardContent className="p-4 sm:p-5 pt-0 space-y-2">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
-                      {question.options.map((opt) => {
-                        const isOptionSelected = userSelectedOptionId === opt.id;
-                        const isOptionCorrect = opt.id === question.correctOptionId;
+                        let style = "border-border/60 bg-muted/20 text-muted-foreground";
 
-                        let style = "border-border bg-card text-muted-foreground";
-                        if (isOptionCorrect) {
-                          style = "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold";
-                        } else if (isOptionSelected && !isOptionCorrect) {
-                          style = "border-rose-500/50 bg-rose-500/10 text-rose-700 dark:text-rose-300 line-through";
+                        if (isCorrectAnswer) {
+                          style = "border-emerald-500 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 font-medium";
+                        } else if (isUserPick && !isCorrect) {
+                          style = "border-rose-500 bg-rose-500/15 text-rose-800 dark:text-rose-300 line-through";
                         }
 
                         return (
                           <div
                             key={opt.id}
-                            className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs sm:text-sm ${style}`}
+                            className={`flex items-center justify-between p-2.5 rounded-lg border text-xs ${style}`}
                           >
                             <span>{opt.text}</span>
-                            {isOptionCorrect && (
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                                Correct Answer
+                            {isCorrectAnswer && (
+                              <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">
+                                Verified Solution ✓
                               </span>
                             )}
-                            {isOptionSelected && !isOptionCorrect && (
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
-                                Your Selection
+                            {isUserPick && !isCorrectAnswer && (
+                              <span className="text-[10px] uppercase font-bold text-rose-600 dark:text-rose-400">
+                                Your Choice ✗
                               </span>
                             )}
                           </div>
                         );
                       })}
                     </div>
+
+                    {q.explanation && (
+                      <p className="text-xs text-muted-foreground pt-2 italic border-t border-border/40">
+                        <strong>Explanation:</strong> {q.explanation}
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               );
             })}
-
-            {filteredQuestions.length === 0 && (
-              <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-                No questions in this filter category.
-              </div>
-            )}
           </div>
         </div>
       )}
