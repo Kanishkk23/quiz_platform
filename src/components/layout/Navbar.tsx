@@ -50,8 +50,27 @@ export function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <Brain className="h-7 w-7 text-primary" />
-          <span className="text-xl font-bold tracking-tight">QuizPlatform</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xl font-black tracking-tight text-foreground">Quizora</span>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#CC5500]/15 text-[#CC5500] border border-[#CC5500]/30 uppercase tracking-widest hidden sm:inline-block">
+              Arena
+            </span>
+          </div>
         </Link>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden items-center gap-6 md:flex">
+          {visibleNavLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <link.icon className="h-4 w-4" />
+              {link.label}
+            </Link>
+          ))}
+        </nav>
 
         {/* Desktop Auth */}
         <div className="hidden items-center gap-2 md:flex">
@@ -100,13 +119,15 @@ export function Navbar() {
                 </Button>
               </Link>
               <Link href="/register">
-                <Button size="sm">Sign Up</Button>
+                <Button size="sm" className="bg-[#CC5500] hover:bg-[#B34700] text-white">
+                  Sign Up
+                </Button>
               </Link>
             </div>
           )}
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Navigation Sheet */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger
             className="inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-accent md:hidden"
@@ -117,7 +138,7 @@ export function Navbar() {
           <SheetContent side="right" className="w-72">
             <SheetTitle className="flex items-center gap-2">
               <Brain className="h-6 w-6 text-primary" />
-              QuizPlatform
+              <span>Quizora Arena</span>
             </SheetTitle>
             <nav className="mt-6 flex flex-col gap-1">
               {visibleNavLinks.map((link) => (
@@ -175,7 +196,9 @@ export function Navbar() {
                     </Button>
                   </Link>
                   <Link href="/register" onClick={() => setMobileOpen(false)}>
-                    <Button className="w-full">Sign Up</Button>
+                    <Button className="w-full bg-[#CC5500] hover:bg-[#B34700] text-white">
+                      Sign Up
+                    </Button>
                   </Link>
                 </>
               )}
