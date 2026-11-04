@@ -53,20 +53,6 @@ export function Navbar() {
           <span className="text-xl font-bold tracking-tight">QuizPlatform</span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-1 md:flex">
-          {visibleNavLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-            >
-              <link.icon className="h-4 w-4" />
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-
         {/* Desktop Auth */}
         <div className="hidden items-center gap-2 md:flex">
           {isAuthenticated && user ? (
