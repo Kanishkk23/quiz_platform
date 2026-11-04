@@ -46,10 +46,10 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Official Brand Logo */}
-        <Link href="/" className="flex items-center transition-opacity hover:opacity-90">
-          <QuizoraLogo className="h-8 w-auto" />
+      <div className="container mx-auto flex h-16 sm:h-18 items-center justify-between px-4 sm:px-6">
+        {/* Official Brand Logo with enhanced prominent scale */}
+        <Link href="/" className="flex items-center transition-transform hover:scale-[1.02]">
+          <QuizoraLogo className="h-10 sm:h-12 w-auto" />
         </Link>
 
         {/* Desktop Auth */}
@@ -117,7 +117,7 @@ export function Navbar() {
           </SheetTrigger>
           <SheetContent side="right" className="w-72">
             <SheetTitle className="flex items-center gap-2">
-              <QuizoraLogo className="h-7 w-auto" />
+              <QuizoraLogo className="h-9 w-auto" />
             </SheetTitle>
             <nav className="mt-6 flex flex-col gap-1">
               {visibleNavLinks.map((link) => (

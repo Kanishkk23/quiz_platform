@@ -11,10 +11,10 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* Brand */}
           <div className="flex flex-col gap-3">
-            <Link href="/" className="flex items-center transition-opacity hover:opacity-90">
-              <QuizoraLogo className="h-8 w-auto" />
+            <Link href="/" className="flex items-center transition-transform hover:scale-[1.02]">
+              <QuizoraLogo className="h-10 sm:h-12 w-auto" />
             </Link>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed pt-1">
               Real-time competitive quiz platform. Challenge yourself with timed questions,
               review granular solutions, and claim top ranks on per-quiz live leaderboards.
             </p>

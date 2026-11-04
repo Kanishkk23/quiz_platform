@@ -4,7 +4,7 @@ interface QuizoraLogoProps extends React.SVGProps<SVGSVGElement> {
   className?: string;
 }
 
-export function QuizoraLogo({ className = "h-8 w-auto", ...props }: QuizoraLogoProps) {
+export function QuizoraLogo({ className = "h-11 w-auto", ...props }: QuizoraLogoProps) {
   return (
     <svg
       viewBox="0 0 330 84"

@@ -94,8 +94,8 @@ export function RegisterForm() {
   return (
     <Card className="w-full max-w-md shadow-lg border-muted">
       <CardHeader className="space-y-3 text-center">
-        <div className="mx-auto flex items-center justify-center pt-2">
-          <QuizoraLogo className="h-10 w-auto" />
+        <div className="mx-auto flex items-center justify-center pt-2 pb-1">
+          <QuizoraLogo className="h-12 sm:h-14 w-auto" />
         </div>
         <CardTitle className="text-2xl font-bold tracking-tight">Create your account</CardTitle>
         <CardDescription>
