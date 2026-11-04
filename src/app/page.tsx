@@ -1,3 +1,4 @@
+import IntroGate from "@/components/intro/IntroGate";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,7 +17,8 @@ import {
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <IntroGate variant="cube">
+      <div className="flex flex-col min-h-screen">
       {/* Split Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#9CAF88]/10 via-background to-background pt-12 pb-20 md:pt-20 md:pb-32 border-b border-border/80">
         <div className="container mx-auto px-4 max-w-7xl">
@@ -199,6 +201,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </IntroGate>
   );
 }

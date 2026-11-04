@@ -1,0 +1,78 @@
+/* ───────────────────────────────────────────────
+   Quizora intro – overlay shell
+   Brand tokens (tweak here if your exact colours differ)
+   ─────────────────────────────────────────────── */
+.overlay {
+  --qz-bg: #faf9f6;
+  --qz-ink: #1f2a24;
+  --qz-orange: #d2570a;
+  --qz-green: #6b8f5a;
+
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--qz-bg);
+  overflow: hidden;
+  will-change: transform;
+  color: var(--qz-ink);
+}
+
+/* Orange edge that trails the curtain as it lifts */
+.overlay::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  background: var(--qz-orange);
+  opacity: 0;
+}
+
+.exit {
+  animation: lift 0.9s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  pointer-events: none;
+}
+.exit::after {
+  opacity: 1;
+}
+
+@keyframes lift {
+  to {
+    transform: translate3d(0, -100%, 0);
+  }
+}
+
+.skip {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  z-index: 5;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--qz-ink);
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(31, 42, 36, 0.14);
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  opacity: 0;
+  animation: skipIn 0.4s 0.9s ease forwards;
+  transition: background 0.2s, border-color 0.2s;
+}
+.skip:hover {
+  background: #fff;
+  border-color: rgba(31, 42, 36, 0.3);
+}
+.skip:focus-visible {
+  outline: 2px solid var(--qz-orange);
+  outline-offset: 2px;
+}
+
+@keyframes skipIn {
+  to {
+    opacity: 1;
+  }
+}
