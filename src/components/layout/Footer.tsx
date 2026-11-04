@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
+import { QuizoraLogo } from "@/components/layout/QuizoraLogo";
 
 export function Footer() {
   return (
@@ -12,13 +12,7 @@ export function Footer() {
           {/* Brand */}
           <div className="flex flex-col gap-3">
             <Link href="/" className="flex items-center transition-opacity hover:opacity-90">
-              <Image
-                src="/quizora-logo.png"
-                alt="quizora -B"
-                width={130}
-                height={35}
-                className="h-8 w-auto object-contain"
-              />
+              <QuizoraLogo className="h-8 w-auto" />
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Real-time competitive quiz platform. Challenge yourself with timed questions,

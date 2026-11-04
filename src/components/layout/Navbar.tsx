@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +27,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { QuizoraLogo } from "@/components/layout/QuizoraLogo";
 
 const baseNavLinks = [
   { href: "/", label: "Home", icon: Home },
@@ -49,14 +49,7 @@ export function Navbar() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Official Brand Logo */}
         <Link href="/" className="flex items-center transition-opacity hover:opacity-90">
-          <Image
-            src="/quizora-logo.png"
-            alt="quizora -B"
-            width={130}
-            height={35}
-            priority
-            className="h-8 w-auto object-contain"
-          />
+          <QuizoraLogo className="h-8 w-auto" />
         </Link>
 
         {/* Desktop Auth */}
@@ -124,13 +117,7 @@ export function Navbar() {
           </SheetTrigger>
           <SheetContent side="right" className="w-72">
             <SheetTitle className="flex items-center gap-2">
-              <Image
-                src="/quizora-logo.png"
-                alt="quizora -B"
-                width={120}
-                height={32}
-                className="h-7 w-auto object-contain"
-              />
+              <QuizoraLogo className="h-7 w-auto" />
             </SheetTitle>
             <nav className="mt-6 flex flex-col gap-1">
               {visibleNavLinks.map((link) => (

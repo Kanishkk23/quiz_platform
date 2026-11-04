@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { QuizoraLogo } from "@/components/layout/QuizoraLogo";
 
 interface FormErrors {
   name?: string;
@@ -95,14 +95,7 @@ export function RegisterForm() {
     <Card className="w-full max-w-md shadow-lg border-muted">
       <CardHeader className="space-y-3 text-center">
         <div className="mx-auto flex items-center justify-center pt-2">
-          <Image
-            src="/quizora-logo.png"
-            alt="quizora -B"
-            width={140}
-            height={38}
-            priority
-            className="h-9 w-auto object-contain"
-          />
+          <QuizoraLogo className="h-10 w-auto" />
         </div>
         <CardTitle className="text-2xl font-bold tracking-tight">Create your account</CardTitle>
         <CardDescription>
