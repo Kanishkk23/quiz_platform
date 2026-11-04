@@ -73,7 +73,7 @@ export default function HomePage() {
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4 text-xs font-medium text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 text-[#607C52]" />
-                  <span>60+ Curated Challenge Questions</span>
+                  <span>Curated Challenge Questions</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Sparkles className="h-4 w-4 text-[#CC5500]" />

@@ -13,7 +13,6 @@ import {
   X,
   Trophy,
   Clock,
-  ShieldCheck,
   Flame,
 } from "lucide-react";
 
@@ -85,7 +84,7 @@ export default function QuizzesPage() {
         </div>
       </div>
 
-      {/* Filter and Search Bar (Category pills removed as requested) */}
+      {/* Filter and Search Bar */}
       <div className="mb-8 rounded-xl border bg-card p-4 shadow-sm md:p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           {/* Search */}
@@ -157,13 +156,19 @@ export default function QuizzesPage() {
         </div>
       ) : (
         <div className="rounded-xl border border-dashed p-12 text-center">
-          <h3 className="text-lg font-semibold text-foreground mb-1">No quizzes found</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-1">
+            {mockQuizzes.length === 0 ? "No quizzes available yet" : "No quizzes found"}
+          </h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Try adjusting your search query or difficulty filter.
+            {mockQuizzes.length === 0
+              ? "Quizzes will appear here once published from the database."
+              : "Try adjusting your search query or difficulty filter."}
           </p>
-          <Button variant="outline" size="sm" onClick={clearFilters}>
-            Reset filters
-          </Button>
+          {hasActiveFilters && (
+            <Button variant="outline" size="sm" onClick={clearFilters}>
+              Reset filters
+            </Button>
+          )}
         </div>
       )}
     </div>
