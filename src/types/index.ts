@@ -26,6 +26,7 @@ export interface Question {
   text: string;
   options: Option[];
   correctOptionId: string;
+  explanation?: string;
 }
 
 export interface Option {
@@ -49,6 +50,8 @@ export interface LeaderboardEntry {
   userId: string;
   userName: string;
   avatarUrl?: string;
+  quizId: string;
+  quizTitle?: string;
   score: number;
   totalQuestions: number;
   timeTaken: number; // in seconds

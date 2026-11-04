@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,8 +13,9 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Brain, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { QuizoraLogo } from "@/components/layout/QuizoraLogo";
 
 interface FormErrors {
   name?: string;
@@ -25,6 +26,9 @@ interface FormErrors {
 
 export function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
+
   const { register } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -75,23 +79,37 @@ export function RegisterForm() {
     setIsLoading(true);
 
     // Mock registration — simulates network call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 800));
     await register(formData.name.trim(), formData.email.trim());
 
     setIsLoading(false);
-    router.push("/quizzes");
+    const targetUrl = redirectParam || "/quizzes";
+    router.push(targetUrl);
   };
+
+  const loginHref = redirectParam
+    ? `/login?redirect=${encodeURIComponent(redirectParam)}`
+    : "/login";
 
   return (
     <Card className="w-full max-w-md shadow-lg border-muted">
-      <CardHeader className="space-y-2 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-          <Brain className="h-6 w-6 text-primary" />
+      <CardHeader className="space-y-3 text-center">
+        <div className="mx-auto flex items-center justify-center pt-2 pb-1">
+          <QuizoraLogo className="h-12 sm:h-14 w-auto" />
         </div>
-        <CardTitle className="text-2xl font-bold tracking-tight">Create an account</CardTitle>
+        <CardTitle className="text-2xl font-bold tracking-tight">Create your account</CardTitle>
         <CardDescription>
-          Sign up to start taking quizzes and climb the leaderboard
+          Sign up to compete in quizzes and claim top leaderboard spots
         </CardDescription>
+
+        {redirectParam && (
+          <div className="mt-3 flex items-center gap-2 rounded-lg border border-[#CC5500]/30 bg-[#CC5500]/10 p-2.5 text-xs text-[#CC5500] text-left">
+            <Lock className="h-4 w-4 shrink-0" />
+            <span>
+              Create an account to begin your quiz attempt right away!
+            </span>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -207,7 +225,7 @@ export function RegisterForm() {
                 Creating account...
               </>
             ) : (
-              "Create Account"
+              "Create Account & Start Quiz"
             )}
           </Button>
         </form>
@@ -215,7 +233,7 @@ export function RegisterForm() {
         <div className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link
-            href="/login"
+            href={loginHref}
             className="font-medium text-primary underline-offset-4 hover:underline"
           >
             Sign in

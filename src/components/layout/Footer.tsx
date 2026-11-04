@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Brain } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { QuizoraLogo } from "@/components/layout/QuizoraLogo";
 
 export function Footer() {
   return (
@@ -11,19 +11,18 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* Brand */}
           <div className="flex flex-col gap-3">
-            <Link href="/" className="flex items-center gap-2">
-              <Brain className="h-6 w-6 text-primary" />
-              <span className="text-lg font-bold">QuizPlatform</span>
+            <Link href="/" className="flex items-center transition-transform hover:scale-[1.02]">
+              <QuizoraLogo className="h-10 sm:h-12 w-auto" />
             </Link>
-            <p className="text-sm text-muted-foreground">
-              Challenge yourself, learn something new, and compete with others
-              on our interactive quiz platform.
+            <p className="text-sm text-muted-foreground leading-relaxed pt-1">
+              Real-time competitive quiz platform. Challenge yourself with timed questions,
+              review granular solutions, and claim top ranks on per-quiz live leaderboards.
             </p>
           </div>
 
           {/* Quick Links */}
           <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-semibold">Quick Links</h3>
+            <h3 className="text-sm font-semibold">Arena Navigation</h3>
             <nav className="flex flex-col gap-2">
               <Link
                 href="/quizzes"
@@ -35,7 +34,7 @@ export function Footer() {
                 href="/leaderboard"
                 className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
-                Leaderboard
+                Quiz Leaderboards
               </Link>
               <Link
                 href="/login"
@@ -43,15 +42,21 @@ export function Footer() {
               >
                 Login
               </Link>
+              <Link
+                href="/register"
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Sign Up
+              </Link>
             </nav>
           </div>
 
           {/* About */}
           <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-semibold">About</h3>
-            <p className="text-sm text-muted-foreground">
-              Built with Next.js, Tailwind CSS, and shadcn/ui as part of the GDG
-              On Campus quiz platform project.
+            <h3 className="text-sm font-semibold">Tournament Rules</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Every quiz awards +10 points per verified answer with zero negative penalty.
+              Tiebreakers are calculated using exact seconds to finish.
             </p>
           </div>
         </div>
@@ -60,10 +65,10 @@ export function Footer() {
 
         <div className="flex flex-col items-center justify-between gap-2 text-center md:flex-row">
           <p className="text-xs text-muted-foreground">
-            &copy; 2026 QuizPlatform. All rights reserved.
+            &copy; {new Date().getFullYear()} Quizora -B. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">
-            Made with ❤️ by the team
+            Competitive Quiz & Knowledge Platform
           </p>
         </div>
       </div>

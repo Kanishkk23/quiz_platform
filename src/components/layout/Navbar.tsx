@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Brain,
   Menu,
   LogOut,
   User,
@@ -28,6 +27,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { QuizoraLogo } from "@/components/layout/QuizoraLogo";
 
 const baseNavLinks = [
   { href: "/", label: "Home", icon: Home },
@@ -46,11 +46,10 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <Brain className="h-7 w-7 text-primary" />
-          <span className="text-xl font-bold tracking-tight">QuizPlatform</span>
+      <div className="container mx-auto flex h-16 sm:h-18 items-center justify-between px-4 sm:px-6">
+        {/* Official Brand Logo with enhanced prominent scale */}
+        <Link href="/" className="flex items-center transition-transform hover:scale-[1.02]">
+          <QuizoraLogo className="h-10 sm:h-12 w-auto" />
         </Link>
 
         {/* Desktop Auth */}
@@ -100,13 +99,15 @@ export function Navbar() {
                 </Button>
               </Link>
               <Link href="/register">
-                <Button size="sm">Sign Up</Button>
+                <Button size="sm" className="bg-[#CC5500] hover:bg-[#B34700] text-white font-medium">
+                  Sign Up
+                </Button>
               </Link>
             </div>
           )}
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Navigation Sheet */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger
             className="inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-accent md:hidden"
@@ -116,8 +117,7 @@ export function Navbar() {
           </SheetTrigger>
           <SheetContent side="right" className="w-72">
             <SheetTitle className="flex items-center gap-2">
-              <Brain className="h-6 w-6 text-primary" />
-              QuizPlatform
+              <QuizoraLogo className="h-9 w-auto" />
             </SheetTitle>
             <nav className="mt-6 flex flex-col gap-1">
               {visibleNavLinks.map((link) => (
@@ -175,7 +175,9 @@ export function Navbar() {
                     </Button>
                   </Link>
                   <Link href="/register" onClick={() => setMobileOpen(false)}>
-                    <Button className="w-full">Sign Up</Button>
+                    <Button className="w-full bg-[#CC5500] hover:bg-[#B34700] text-white">
+                      Sign Up
+                    </Button>
                   </Link>
                 </>
               )}
