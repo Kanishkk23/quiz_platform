@@ -1,15 +1,20 @@
+"use client";
+
 import Link from "next/link";
 import { Quiz } from "@/types";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, HelpCircle, ArrowRight } from "lucide-react";
+import { Clock, HelpCircle, ArrowRight, Lock, Play } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 interface QuizCardProps {
   quiz: Quiz;
 }
 
 export function QuizCard({ quiz }: QuizCardProps) {
+  const { isAuthenticated } = useAuth();
+
   const getDifficultyColor = (diff: Quiz["difficulty"]) => {
     switch (diff) {
       case "easy":
@@ -24,6 +29,10 @@ export function QuizCard({ quiz }: QuizCardProps) {
   const formatMinutes = (seconds: number) => {
     return `${Math.round(seconds / 60)} min`;
   };
+
+  const targetHref = isAuthenticated
+    ? `/quizzes/${quiz.id}`
+    : `/login?redirect=/quizzes/${quiz.id}`;
 
   return (
     <Card className="flex flex-col justify-between transition-all duration-200 hover:shadow-lg hover:border-primary/40 group">
@@ -63,10 +72,21 @@ export function QuizCard({ quiz }: QuizCardProps) {
       </CardContent>
 
       <CardFooter className="pt-0">
-        <Link href={`/quizzes/${quiz.id}`} className="w-full">
+        <Link href={targetHref} className="w-full">
           <Button className="w-full gap-2 group/btn">
-            Start Quiz
-            <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
+            {isAuthenticated ? (
+              <>
+                <Play className="h-4 w-4 fill-current" />
+                Start Quiz
+                <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
+              </>
+            ) : (
+              <>
+                <Lock className="h-4 w-4" />
+                Sign In to Attempt
+                <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
+              </>
+            )}
           </Button>
         </Link>
       </CardFooter>

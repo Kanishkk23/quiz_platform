@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,11 +13,14 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Brain, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Brain, Eye, EyeOff, Loader2, Lock, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
+
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,13 +57,18 @@ export function LoginForm() {
 
     setIsLoading(true);
 
-    // Mock login — simulates a network request
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    // Mock login — simulates network request
+    await new Promise((resolve) => setTimeout(resolve, 600));
     await login(formData.email);
 
     setIsLoading(false);
-    router.push("/quizzes");
+    const targetUrl = redirectParam || "/quizzes";
+    router.push(targetUrl);
   };
+
+  const registerHref = redirectParam
+    ? `/register?redirect=${encodeURIComponent(redirectParam)}`
+    : "/register";
 
   return (
     <Card className="w-full max-w-md shadow-lg border-muted">
@@ -68,10 +76,19 @@ export function LoginForm() {
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
           <Brain className="h-6 w-6 text-primary" />
         </div>
-        <CardTitle className="text-2xl font-bold tracking-tight">Welcome back</CardTitle>
+        <CardTitle className="text-2xl font-bold tracking-tight">Welcome to Quizora</CardTitle>
         <CardDescription>
-          Enter your credentials to access your account
+          Enter your credentials to access your account & compete
         </CardDescription>
+
+        {redirectParam && (
+          <div className="mt-3 flex items-center gap-2 rounded-lg border border-[#CC5500]/30 bg-[#CC5500]/10 p-2.5 text-xs text-[#CC5500] text-left">
+            <Lock className="h-4 w-4 shrink-0" />
+            <span>
+              <strong>Login Required:</strong> Please sign in to attempt your chosen quiz. You will be redirected right back!
+            </span>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -134,7 +151,7 @@ export function LoginForm() {
                 Signing in...
               </>
             ) : (
-              "Sign In"
+              "Sign In & Continue"
             )}
           </Button>
         </form>
@@ -142,7 +159,7 @@ export function LoginForm() {
         <div className="mt-6 text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
           <Link
-            href="/register"
+            href={registerHref}
             className="font-medium text-primary underline-offset-4 hover:underline"
           >
             Sign up
