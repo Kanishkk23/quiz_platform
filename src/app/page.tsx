@@ -22,14 +22,14 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Split Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-blue-500/5 via-background to-background pt-12 pb-20 md:pt-20 md:pb-32 border-b">
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#9CAF88]/10 via-background to-background pt-12 pb-20 md:pt-20 md:pb-32 border-b border-border/80">
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Column: Headline & Action */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
               {/* Top Announcement Pill */}
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary shadow-xs">
-                <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#CC5500]/30 bg-[#CC5500]/10 px-4 py-1.5 text-xs font-semibold text-[#CC5500] shadow-xs">
+                <Zap className="h-3.5 w-3.5 text-[#CC5500] fill-[#CC5500]" />
                 Live Competitive Quiz Arena
               </div>
 
@@ -37,7 +37,7 @@ export default function HomePage() {
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-foreground leading-[1.1]">
                 Master Any Topic. <br className="hidden sm:inline" />
                 Beat the Clock. <br />
-                <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#CC5500] via-[#D97706] to-[#607C52] bg-clip-text text-transparent">
                   Climb the Ranks.
                 </span>
               </h1>
@@ -52,7 +52,7 @@ export default function HomePage() {
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2">
                 <Link href="/quizzes" className="w-full sm:w-auto">
-                  <Button size="lg" className="w-full sm:w-auto gap-2 font-semibold text-base px-7 h-12 shadow-md shadow-primary/20">
+                  <Button size="lg" className="w-full sm:w-auto gap-2 font-semibold text-base px-7 h-12 shadow-md shadow-[#CC5500]/25 bg-[#CC5500] hover:bg-[#B34700] text-white">
                     Start a Quiz
                     <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -61,9 +61,9 @@ export default function HomePage() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="w-full sm:w-auto gap-2 font-medium text-base px-6 h-12 border-border/80"
+                    className="w-full sm:w-auto gap-2 font-medium text-base px-6 h-12 border-[#A7A7A7]/40 hover:bg-[#9CAF88]/15"
                   >
-                    <Trophy className="h-4 w-4 text-amber-500" />
+                    <Trophy className="h-4 w-4 text-[#CC5500]" />
                     Live Leaderboard
                   </Button>
                 </Link>
@@ -72,15 +72,15 @@ export default function HomePage() {
               {/* Trust & Feature Badges */}
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4 text-xs font-medium text-muted-foreground">
                 <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  <CheckCircle2 className="h-4 w-4 text-[#607C52]" />
                   <span>50+ Curated Questions</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Sparkles className="h-4 w-4 text-blue-500" />
+                  <Sparkles className="h-4 w-4 text-[#CC5500]" />
                   <span>Real-time Scoring</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Hourglass className="h-4 w-4 text-amber-500" />
+                  <Hourglass className="h-4 w-4 text-[#9CAF88]" />
                   <span>Quiz & Per-Question Timers</span>
                 </div>
               </div>
@@ -93,17 +93,17 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Subtle Ambient Background Blobs */}
-        <div className="pointer-events-none absolute -top-24 right-10 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 left-10 h-80 w-80 rounded-full bg-purple-500/10 blur-3xl" />
+        {/* Ambient Glow Blobs in Sage Green & Burnt Amber */}
+        <div className="pointer-events-none absolute -top-24 right-10 h-80 w-80 rounded-full bg-[#9CAF88]/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 left-10 h-80 w-80 rounded-full bg-[#CC5500]/15 blur-3xl" />
       </section>
 
       {/* Modern Bento Grid Features Section */}
-      <section className="py-20 md:py-28 bg-muted/20">
+      <section className="py-20 md:py-28 bg-[#9CAF88]/5">
         <div className="container mx-auto px-4 max-w-7xl">
           {/* Section Header */}
           <div className="text-center max-w-3xl mx-auto mb-14 space-y-3">
-            <Badge variant="outline" className="font-semibold text-xs uppercase tracking-wider text-primary">
+            <Badge variant="outline" className="font-semibold text-xs uppercase tracking-wider text-[#CC5500] border-[#CC5500]/30 bg-[#CC5500]/5">
               Built for Performance & Learning
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
@@ -117,12 +117,12 @@ export default function HomePage() {
           {/* Bento Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Bento Card 1: Live Leaderboard (Spans 2 columns on desktop) */}
-            <Card className="md:col-span-2 border bg-card/90 shadow-sm overflow-hidden flex flex-col justify-between">
+            <Card className="md:col-span-2 border border-border/90 bg-card/90 shadow-sm overflow-hidden flex flex-col justify-between">
               <CardContent className="p-6 sm:p-8 space-y-6">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
-                      <Trophy className="h-4 w-4 text-amber-500" />
+                    <div className="flex items-center gap-2 text-[#CC5500] font-bold text-xs uppercase tracking-wider">
+                      <Trophy className="h-4 w-4 text-[#CC5500]" />
                       Competitive Ranking
                     </div>
                     <h3 className="text-2xl font-bold tracking-tight">
@@ -133,7 +133,7 @@ export default function HomePage() {
                     </p>
                   </div>
                   <Link href="/leaderboard">
-                    <Button variant="ghost" size="sm" className="hidden sm:flex gap-1 text-xs">
+                    <Button variant="ghost" size="sm" className="hidden sm:flex gap-1 text-xs text-[#CC5500] hover:text-[#B34700]">
                       View Standings
                       <ArrowRight className="h-3 w-3" />
                     </Button>
@@ -142,22 +142,22 @@ export default function HomePage() {
 
                 {/* Mini Leaderboard Podium Showcase */}
                 <div className="grid grid-cols-3 gap-3 pt-2 text-center">
-                  <div className="rounded-xl border bg-muted/30 p-3 sm:p-4">
-                    <Medal className="h-6 w-6 text-slate-400 mx-auto mb-1" />
+                  <div className="rounded-xl border border-border bg-muted/40 p-3 sm:p-4">
+                    <Medal className="h-6 w-6 text-[#A7A7A7] mx-auto mb-1" />
                     <div className="text-xs font-semibold">Rank #2</div>
                     <div className="text-base font-bold">9 / 10</div>
                     <div className="text-[10px] text-muted-foreground">Accuracy: 90%</div>
                   </div>
 
-                  <div className="rounded-xl border-2 border-amber-500/40 bg-amber-500/10 p-3 sm:p-4 transform -translate-y-1">
-                    <Trophy className="h-7 w-7 text-amber-500 mx-auto mb-1" />
-                    <div className="text-xs font-bold text-amber-700 dark:text-amber-300">👑 Champion</div>
-                    <div className="text-lg font-black text-amber-600 dark:text-amber-400">10 / 10</div>
+                  <div className="rounded-xl border-2 border-[#CC5500]/40 bg-[#CC5500]/10 p-3 sm:p-4 transform -translate-y-1 shadow-xs">
+                    <Trophy className="h-7 w-7 text-[#CC5500] mx-auto mb-1" />
+                    <div className="text-xs font-bold text-[#CC5500]">👑 Champion</div>
+                    <div className="text-lg font-black text-[#CC5500]">10 / 10</div>
                     <div className="text-[10px] text-muted-foreground">Speed: 2m 15s</div>
                   </div>
 
-                  <div className="rounded-xl border bg-muted/30 p-3 sm:p-4">
-                    <Medal className="h-6 w-6 text-amber-700 mx-auto mb-1" />
+                  <div className="rounded-xl border border-border bg-muted/40 p-3 sm:p-4">
+                    <Medal className="h-6 w-6 text-[#8F6A48] mx-auto mb-1" />
                     <div className="text-xs font-semibold">Rank #3</div>
                     <div className="text-base font-bold">8 / 10</div>
                     <div className="text-[10px] text-muted-foreground">Accuracy: 80%</div>
@@ -167,11 +167,11 @@ export default function HomePage() {
             </Card>
 
             {/* Bento Card 2: Dual Timer Modes */}
-            <Card className="border bg-card/90 shadow-sm flex flex-col justify-between">
+            <Card className="border border-border/90 bg-card/90 shadow-sm flex flex-col justify-between">
               <CardContent className="p-6 sm:p-8 space-y-4">
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
-                    <Clock className="h-4 w-4 text-blue-500" />
+                  <div className="flex items-center gap-2 text-[#607C52] font-bold text-xs uppercase tracking-wider">
+                    <Clock className="h-4 w-4 text-[#607C52]" />
                     Flexible Timing
                   </div>
                   <h3 className="text-xl font-bold tracking-tight">
@@ -183,30 +183,30 @@ export default function HomePage() {
                 </div>
 
                 <div className="space-y-2 pt-2">
-                  <div className="flex items-center justify-between p-2.5 rounded-lg border bg-muted/40 text-xs font-medium">
+                  <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/40 text-xs font-medium">
                     <span className="flex items-center gap-2">
-                      <Clock className="h-3.5 w-3.5 text-primary" />
+                      <Clock className="h-3.5 w-3.5 text-[#607C52]" />
                       Full Quiz Mode
                     </span>
-                    <Badge variant="secondary" className="text-[10px]">10 min limit</Badge>
+                    <Badge variant="secondary" className="text-[10px] bg-[#9CAF88]/20 text-[#2B3B24]">10 min limit</Badge>
                   </div>
-                  <div className="flex items-center justify-between p-2.5 rounded-lg border bg-primary/10 border-primary/30 text-xs font-semibold text-primary">
+                  <div className="flex items-center justify-between p-2.5 rounded-lg border border-[#CC5500]/30 bg-[#CC5500]/10 text-xs font-semibold text-[#CC5500]">
                     <span className="flex items-center gap-2">
-                      <Hourglass className="h-3.5 w-3.5 text-amber-500" />
+                      <Hourglass className="h-3.5 w-3.5 text-[#CC5500]" />
                       Per-Question Blitz
                     </span>
-                    <Badge className="text-[10px] bg-primary text-primary-foreground">30s / Q</Badge>
+                    <Badge className="text-[10px] bg-[#CC5500] text-white">30s / Q</Badge>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Bento Card 3: Granular Answer Review */}
-            <Card className="border bg-card/90 shadow-sm flex flex-col justify-between">
+            <Card className="border border-border/90 bg-card/90 shadow-sm flex flex-col justify-between">
               <CardContent className="p-6 sm:p-8 space-y-4">
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
-                    <BarChart3 className="h-4 w-4 text-emerald-500" />
+                  <div className="flex items-center gap-2 text-[#607C52] font-bold text-xs uppercase tracking-wider">
+                    <BarChart3 className="h-4 w-4 text-[#607C52]" />
                     In-Depth Feedback
                   </div>
                   <h3 className="text-xl font-bold tracking-tight">
@@ -219,25 +219,25 @@ export default function HomePage() {
 
                 <div className="space-y-2 pt-2">
                   <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden flex">
-                    <div className="bg-emerald-500 w-[70%]" title="Correct: 70%" />
-                    <div className="bg-rose-500 w-[20%]" title="Incorrect: 20%" />
-                    <div className="bg-slate-400 w-[10%]" title="Skipped: 10%" />
+                    <div className="bg-[#607C52] w-[70%]" title="Correct: 70%" />
+                    <div className="bg-[#D93829] w-[20%]" title="Incorrect: 20%" />
+                    <div className="bg-[#A7A7A7] w-[10%]" title="Skipped: 10%" />
                   </div>
                   <div className="flex justify-between text-[11px] text-muted-foreground font-medium pt-1">
-                    <span className="text-emerald-600 font-semibold">✓ 7 Correct</span>
-                    <span className="text-rose-600 font-semibold">✗ 2 Incorrect</span>
-                    <span>1 Skipped</span>
+                    <span className="text-[#607C52] font-semibold">✓ 7 Correct</span>
+                    <span className="text-[#D93829] font-semibold">✗ 2 Incorrect</span>
+                    <span className="text-[#A7A7A7]">1 Skipped</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Bento Card 4: Diverse Category Matrix (Spans 2 columns on desktop) */}
-            <Card className="md:col-span-2 border bg-card/90 shadow-sm flex flex-col justify-between">
+            <Card className="md:col-span-2 border border-border/90 bg-card/90 shadow-sm flex flex-col justify-between">
               <CardContent className="p-6 sm:p-8 space-y-4">
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
-                    <Layers className="h-4 w-4 text-purple-500" />
+                  <div className="flex items-center gap-2 text-[#CC5500] font-bold text-xs uppercase tracking-wider">
+                    <Layers className="h-4 w-4 text-[#CC5500]" />
                     Rich Curriculum
                   </div>
                   <h3 className="text-2xl font-bold tracking-tight">
@@ -253,12 +253,12 @@ export default function HomePage() {
                     <Badge
                       key={cat}
                       variant="secondary"
-                      className="px-3 py-1 text-xs font-medium bg-muted/60 hover:bg-muted"
+                      className="px-3 py-1 text-xs font-medium bg-[#9CAF88]/15 border border-[#9CAF88]/30 text-foreground hover:bg-[#9CAF88]/25"
                     >
                       {cat}
                     </Badge>
                   ))}
-                  <Badge variant="outline" className="px-3 py-1 text-xs border-dashed text-primary">
+                  <Badge variant="outline" className="px-3 py-1 text-xs border-dashed text-[#CC5500] border-[#CC5500]/40">
                     + More coming
                   </Badge>
                 </div>
@@ -269,7 +269,7 @@ export default function HomePage() {
       </section>
 
       {/* Final Call to Action Section */}
-      <section className="border-t bg-gradient-to-b from-background to-blue-500/5 py-16 md:py-24 text-center">
+      <section className="border-t border-border/80 bg-gradient-to-b from-background to-[#9CAF88]/10 py-16 md:py-24 text-center">
         <div className="container mx-auto px-4 max-w-4xl space-y-6">
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
             Ready to test your knowledge?
@@ -279,13 +279,13 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <Link href="/quizzes" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto gap-2 font-semibold px-8 h-12">
+              <Button size="lg" className="w-full sm:w-auto gap-2 font-semibold px-8 h-12 bg-[#CC5500] hover:bg-[#B34700] text-white shadow-md shadow-[#CC5500]/25">
                 Explore Quizzes
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
             <Link href="/register" className="w-full sm:w-auto">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto font-medium px-8 h-12">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto font-medium px-8 h-12 border-[#A7A7A7]/50 hover:bg-[#9CAF88]/15">
                 Create Free Account
               </Button>
             </Link>
