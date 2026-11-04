@@ -46,7 +46,7 @@ export default function HomePage() {
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed">
                 Take timed quizzes, test your speed against adaptive countdowns,
                 review detailed question-by-question solutions, and battle for the
-                #1 spot on the global leaderboard.
+                #1 spot on dedicated quiz leaderboards.
               </p>
 
               {/* CTA Buttons */}
@@ -73,7 +73,7 @@ export default function HomePage() {
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4 text-xs font-medium text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 text-[#607C52]" />
-                  <span>50+ Curated Questions</span>
+                  <span>60+ Curated Challenge Questions</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Sparkles className="h-4 w-4 text-[#CC5500]" />
@@ -116,7 +116,7 @@ export default function HomePage() {
 
           {/* Bento Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Bento Card 1: Live Leaderboard (Spans 2 columns on desktop) */}
+            {/* Bento Card 1: Per-Quiz Leaderboard (Spans 2 columns on desktop) */}
             <Card className="md:col-span-2 border border-border/90 bg-card/90 shadow-sm overflow-hidden flex flex-col justify-between">
               <CardContent className="p-6 sm:p-8 space-y-6">
                 <div className="flex items-start justify-between">
@@ -126,10 +126,10 @@ export default function HomePage() {
                       Competitive Ranking
                     </div>
                     <h3 className="text-2xl font-bold tracking-tight">
-                      Live Realtime Leaderboard
+                      Dedicated Per-Quiz Leaderboards
                     </h3>
                     <p className="text-sm text-muted-foreground max-w-lg">
-                      Watch rankings update dynamically as participants finish quizzes. Compete for the Gold, Silver, and Bronze podium.
+                      Every quiz has its own hall of fame. Compare accuracy and completion speed against other contenders for that specific topic.
                     </p>
                   </div>
                   <Link href="/leaderboard">
@@ -153,7 +153,7 @@ export default function HomePage() {
                     <Trophy className="h-7 w-7 text-[#CC5500] mx-auto mb-1" />
                     <div className="text-xs font-bold text-[#CC5500]">👑 Champion</div>
                     <div className="text-lg font-black text-[#CC5500]">10 / 10</div>
-                    <div className="text-[10px] text-muted-foreground">Speed: 2m 15s</div>
+                    <div className="text-[10px] text-muted-foreground">Speed: 3m 05s</div>
                   </div>
 
                   <div className="rounded-xl border border-border bg-muted/40 p-3 sm:p-4">
@@ -264,31 +264,6 @@ export default function HomePage() {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Final Call to Action Section */}
-      <section className="border-t border-border/80 bg-gradient-to-b from-background to-[#9CAF88]/10 py-16 md:py-24 text-center">
-        <div className="container mx-auto px-4 max-w-4xl space-y-6">
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-            Ready to test your knowledge?
-          </h2>
-          <p className="text-muted-foreground text-base max-w-xl mx-auto">
-            Choose a challenge, test your speed against the clock, and earn your place at the top of the leaderboard.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <Link href="/quizzes" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto gap-2 font-semibold px-8 h-12 bg-[#CC5500] hover:bg-[#B34700] text-white shadow-md shadow-[#CC5500]/25">
-                Explore Quizzes
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/register" className="w-full sm:w-auto">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto font-medium px-8 h-12 border-[#A7A7A7]/50 hover:bg-[#9CAF88]/15">
-                Create Free Account
-              </Button>
-            </Link>
           </div>
         </div>
       </section>
