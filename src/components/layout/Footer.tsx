@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Brain } from "lucide-react";
+import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
@@ -11,14 +11,14 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* Brand */}
           <div className="flex flex-col gap-3">
-            <Link href="/" className="flex items-center gap-2">
-              <Brain className="h-6 w-6 text-primary" />
-              <div className="flex items-center gap-1.5">
-                <span className="text-lg font-black">Quizora</span>
-                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-[#CC5500]/15 text-[#CC5500] border border-[#CC5500]/30 uppercase tracking-widest">
-                  Arena
-                </span>
-              </div>
+            <Link href="/" className="flex items-center transition-opacity hover:opacity-90">
+              <Image
+                src="/quizora-logo.png"
+                alt="quizora -B"
+                width={130}
+                height={35}
+                className="h-8 w-auto object-contain"
+              />
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Real-time competitive quiz platform. Challenge yourself with timed questions,
@@ -71,7 +71,7 @@ export function Footer() {
 
         <div className="flex flex-col items-center justify-between gap-2 text-center md:flex-row">
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Quizora Arena. All rights reserved.
+            &copy; {new Date().getFullYear()} Quizora -B. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">
             Competitive Quiz & Knowledge Platform

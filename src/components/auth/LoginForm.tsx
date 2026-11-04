@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Brain, Eye, EyeOff, Loader2, Lock, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export function LoginForm() {
@@ -72,11 +73,18 @@ export function LoginForm() {
 
   return (
     <Card className="w-full max-w-md shadow-lg border-muted">
-      <CardHeader className="space-y-2 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-          <Brain className="h-6 w-6 text-primary" />
+      <CardHeader className="space-y-3 text-center">
+        <div className="mx-auto flex items-center justify-center pt-2">
+          <Image
+            src="/quizora-logo.png"
+            alt="quizora -B"
+            width={140}
+            height={38}
+            priority
+            className="h-9 w-auto object-contain"
+          />
         </div>
-        <CardTitle className="text-2xl font-bold tracking-tight">Welcome to Quizora</CardTitle>
+        <CardTitle className="text-2xl font-bold tracking-tight">Welcome back</CardTitle>
         <CardDescription>
           Enter your credentials to access your account & compete
         </CardDescription>

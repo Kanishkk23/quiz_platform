@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +19,6 @@ import {
 } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Brain,
   Menu,
   LogOut,
   User,
@@ -47,15 +47,16 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <Brain className="h-7 w-7 text-primary" />
-          <div className="flex items-center gap-1.5">
-            <span className="text-xl font-black tracking-tight text-foreground">Quizora</span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#CC5500]/15 text-[#CC5500] border border-[#CC5500]/30 uppercase tracking-widest hidden sm:inline-block">
-              Arena
-            </span>
-          </div>
+        {/* Official Brand Logo */}
+        <Link href="/" className="flex items-center transition-opacity hover:opacity-90">
+          <Image
+            src="/quizora-logo.png"
+            alt="quizora -B"
+            width={130}
+            height={35}
+            priority
+            className="h-8 w-auto object-contain"
+          />
         </Link>
 
         {/* Desktop Auth */}
@@ -105,7 +106,7 @@ export function Navbar() {
                 </Button>
               </Link>
               <Link href="/register">
-                <Button size="sm" className="bg-[#CC5500] hover:bg-[#B34700] text-white">
+                <Button size="sm" className="bg-[#CC5500] hover:bg-[#B34700] text-white font-medium">
                   Sign Up
                 </Button>
               </Link>
@@ -123,8 +124,13 @@ export function Navbar() {
           </SheetTrigger>
           <SheetContent side="right" className="w-72">
             <SheetTitle className="flex items-center gap-2">
-              <Brain className="h-6 w-6 text-primary" />
-              <span>Quizora Arena</span>
+              <Image
+                src="/quizora-logo.png"
+                alt="quizora -B"
+                width={120}
+                height={32}
+                className="h-7 w-auto object-contain"
+              />
             </SheetTitle>
             <nav className="mt-6 flex flex-col gap-1">
               {visibleNavLinks.map((link) => (
