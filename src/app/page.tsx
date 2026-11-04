@@ -17,7 +17,7 @@ import {
 
 export default function HomePage() {
   return (
-    <IntroGate variant="cube">
+    <IntroGate variant="cube" once={false}>
       <div className="flex flex-col min-h-screen">
       {/* Split Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#9CAF88]/10 via-background to-background pt-12 pb-20 md:pt-20 md:pb-32 border-b border-border/80">
