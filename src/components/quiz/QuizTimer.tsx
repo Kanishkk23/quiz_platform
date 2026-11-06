@@ -65,22 +65,22 @@ export function QuizTimer({
 
   return (
     <div
-      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-mono text-xs sm:text-sm font-semibold transition-colors ${
+      className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[10px] border-2 font-mono text-xs sm:text-sm font-bold transition-colors ${
         isDanger
-          ? "border-destructive/40 bg-destructive/10 text-destructive animate-pulse"
+          ? "border-[#0F3D2E] bg-[#E5484D] text-[#FFFDF5] shadow-[3px_3px_0_#0F3D2E] animate-pulse"
           : isWarning
-          ? "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
-          : "border-border bg-muted/60 text-foreground"
+          ? "border-[#0F3D2E] bg-[#FFE94A] text-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E]"
+          : "border-[#0F3D2E] bg-[#FFFDF5] text-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E]"
       }`}
       title={isPerQuestion ? "Timer per question" : "Overall quiz timer"}
     >
       {isPerQuestion ? (
-        <Hourglass className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isDanger ? "text-destructive" : ""}`} />
+        <Hourglass className="h-4 w-4 text-current" />
       ) : (
-        <Clock className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isDanger ? "text-destructive" : ""}`} />
+        <Clock className="h-4 w-4 text-current" />
       )}
-      <span className="hidden xs:inline text-[11px] uppercase tracking-wider text-muted-foreground font-sans">
-        {isPerQuestion ? "Question:" : "Time:"}
+      <span className="hidden xs:inline text-[11px] uppercase tracking-wider text-current font-sans font-bold">
+        {isPerQuestion ? "Q-Timer:" : "Time:"}
       </span>
       <span>{formattedTime}</span>
     </div>

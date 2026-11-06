@@ -18,14 +18,14 @@ export function QuestionCard({
   const letters = ["A", "B", "C", "D", "E"];
 
   return (
-    <Card className="border shadow-sm">
+    <Card className="bg-[#FFFDF5] border-[3px] border-[#0F3D2E] rounded-[18px] shadow-[9px_9px_0_#0F3D2E] text-[#0F3D2E]">
       <CardContent className="p-6 sm:p-8 space-y-6">
         {/* Question Text */}
         <div className="space-y-2">
-          <div className="text-xs font-semibold uppercase tracking-wider text-primary">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border-2 border-[#0F3D2E] bg-[#FFE94A] text-xs font-bold uppercase tracking-wider text-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]">
             Question {questionNumber}
           </div>
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-foreground leading-relaxed">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-[family-name:var(--font-display)] font-extrabold tracking-tight text-[#0F3D2E] leading-relaxed">
             {question.text}
           </h2>
         </div>
@@ -41,32 +41,32 @@ export function QuestionCard({
                 key={option.id}
                 type="button"
                 onClick={() => onSelectOption(option.id)}
-                className={`w-full text-left flex items-center justify-between p-4 rounded-xl border transition-all duration-150 ${
+                className={`w-full text-left flex items-center justify-between p-4 rounded-[12px] border-2 transition-all duration-150 ${
                   isSelected
-                    ? "border-primary bg-primary/5 text-foreground ring-2 ring-primary/20 shadow-xs"
-                    : "border-border/80 bg-card hover:bg-muted/40 hover:border-primary/40 text-foreground"
+                    ? "border-[#0F3D2E] bg-[#0F3D2E] text-[#FFFDF5] shadow-[4px_4px_0_#0F3D2E]"
+                    : "border-[#0F3D2E] bg-[#FFFDF5] hover:bg-[#E3F9EE] hover:translate-x-1 hover:shadow-[-4px_4px_0_#0F3D2E] text-[#0F3D2E]"
                 }`}
               >
                 <div className="flex items-center gap-3.5 flex-1 pr-2">
                   <span
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold border transition-colors ${
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-black border-2 border-[#0F3D2E] transition-colors ${
                       isSelected
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-muted/60 text-muted-foreground border-border group-hover:border-foreground"
+                        ? "bg-[#FFE94A] text-[#0F3D2E]"
+                        : "bg-[#E3F9EE] text-[#0F3D2E]"
                     }`}
                   >
                     {letter}
                   </span>
-                  <span className="text-sm sm:text-base font-medium leading-snug">
+                  <span className="text-sm sm:text-base font-bold leading-snug">
                     {option.text}
                   </span>
                 </div>
 
                 <div className="shrink-0">
                   {isSelected ? (
-                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                    <CheckCircle2 className="h-5 w-5 text-[#FFE94A]" />
                   ) : (
-                    <div className="h-5 w-5 rounded-full border border-muted-foreground/30" />
+                    <div className="h-5 w-5 rounded-full border-2 border-[#0F3D2E]/40" />
                   )}
                 </div>
               </button>

@@ -72,19 +72,21 @@ export function LoginForm() {
     : "/register";
 
   return (
-    <Card className="w-full max-w-md shadow-lg border-muted">
+    <Card className="w-full max-w-md bg-[#FFFDF5] border-[3px] border-[#0F3D2E] rounded-[18px] shadow-[9px_9px_0_#0F3D2E] text-[#0F3D2E]">
       <CardHeader className="space-y-3 text-center">
         <div className="mx-auto flex items-center justify-center pt-2 pb-1">
           <QuizoraLogo className="h-12 sm:h-14 w-auto" />
         </div>
-        <CardTitle className="text-2xl font-bold tracking-tight">Welcome back</CardTitle>
-        <CardDescription>
-          Enter your credentials to access your account & compete
+        <CardTitle className="text-2xl font-[family-name:var(--font-display)] font-extrabold tracking-tight text-[#0F3D2E]">
+          Welcome back
+        </CardTitle>
+        <CardDescription className="text-sm font-medium text-[#0F3D2E]/75">
+          Enter your credentials to access your account &amp; compete
         </CardDescription>
 
         {redirectParam && (
-          <div className="mt-3 flex items-center gap-2 rounded-lg border border-[#CC5500]/30 bg-[#CC5500]/10 p-2.5 text-xs text-[#CC5500] text-left">
-            <Lock className="h-4 w-4 shrink-0" />
+          <div className="mt-3 flex items-center gap-2 rounded-[10px] border-2 border-[#0F3D2E] bg-[#FFE94A] p-3 text-xs font-bold text-[#0F3D2E] text-left shadow-[3px_3px_0_#0F3D2E]">
+            <Lock className="h-4 w-4 shrink-0 text-[#0F3D2E]" />
             <span>
               <strong>Login Required:</strong> Please sign in to attempt your chosen quiz. You will be redirected right back!
             </span>
@@ -94,7 +96,9 @@ export function LoginForm() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="font-bold text-xs uppercase tracking-wider text-[#0F3D2E]">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -103,17 +107,21 @@ export function LoginForm() {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              className={errors.email ? "border-destructive" : ""}
+              className={`bg-[#FFFDF5] border-2 border-[#0F3D2E] text-[#0F3D2E] font-medium rounded-[10px] placeholder:text-[#0F3D2E]/40 focus-visible:ring-[#0F3D2E] ${
+                errors.email ? "border-[#E5484D]" : ""
+              }`}
             />
             {errors.email && (
-              <p className="text-xs text-destructive">{errors.email}</p>
+              <p className="text-xs font-bold text-[#E5484D]">{errors.email}</p>
             )}
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <span className="text-xs text-muted-foreground hover:underline cursor-pointer">
+              <Label htmlFor="password" className="font-bold text-xs uppercase tracking-wider text-[#0F3D2E]">
+                Password
+              </Label>
+              <span className="text-xs font-bold text-[#0F3D2E]/70 hover:underline cursor-pointer">
                 Forgot password?
               </span>
             </div>
@@ -126,12 +134,14 @@ export function LoginForm() {
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
                 }
-                className={errors.password ? "border-destructive pr-10" : "pr-10"}
+                className={`bg-[#FFFDF5] border-2 border-[#0F3D2E] text-[#0F3D2E] font-medium rounded-[10px] placeholder:text-[#0F3D2E]/40 focus-visible:ring-[#0F3D2E] pr-10 ${
+                  errors.password ? "border-[#E5484D]" : ""
+                }`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#0F3D2E]/70 hover:text-[#0F3D2E]"
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4" />
@@ -141,14 +151,18 @@ export function LoginForm() {
               </button>
             </div>
             {errors.password && (
-              <p className="text-xs text-destructive">{errors.password}</p>
+              <p className="text-xs font-bold text-[#E5484D]">{errors.password}</p>
             )}
           </div>
 
-          <Button type="submit" className="w-full font-medium" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="w-full bg-[#FFE94A] hover:bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] font-bold rounded-[12px] shadow-[4px_4px_0_#0F3D2E] hover:shadow-[6px_6px_0_#0F3D2E] active:translate-y-0.5 active:shadow-none transition-all py-5 text-base mt-2"
+            disabled={isLoading}
+          >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin text-[#0F3D2E]" />
                 Signing in...
               </>
             ) : (
@@ -157,11 +171,11 @@ export function LoginForm() {
           </Button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-muted-foreground">
+        <div className="mt-6 text-center text-sm font-semibold text-[#0F3D2E]/80">
           Don&apos;t have an account?{" "}
           <Link
             href={registerHref}
-            className="font-medium text-primary underline-offset-4 hover:underline"
+            className="font-bold text-[#0F3D2E] bg-[linear-gradient(transparent_58%,#FFE94A_58%)] hover:bg-[#FFE94A] px-1 py-0.5 rounded transition-all"
           >
             Sign up
           </Link>

@@ -7,7 +7,7 @@ import { mockQuizzes, mockQuestions } from "@/data/mock";
 import { QuestionCard } from "@/components/quiz/QuestionCard";
 import { QuizTimer } from "@/components/quiz/QuizTimer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
@@ -37,7 +37,7 @@ interface QuizAttemptViewProps {
 export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
-  const [authChecked, setAuthChecked] = useState(false);
+  const [, setAuthChecked] = useState(false);
 
   // Authentication guard: redirect to login if not authenticated
   useEffect(() => {
@@ -194,27 +194,39 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
   // If not authenticated, render the authentication barrier card
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-16 bg-muted/10">
-        <Card className="w-full max-w-md text-center p-8 space-y-5 border-border shadow-md">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10 text-[#CC5500] ring-4 ring-[#CC5500]/10">
+      <div
+        className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-16 bg-[#BDF2D5]"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(15, 61, 46, 0.18) 1.5px, transparent 1.5px),
+            linear-gradient(90deg, rgba(15, 61, 46, 0.18) 1.5px, transparent 1.5px),
+            linear-gradient(rgba(15, 61, 46, 0.08) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(15, 61, 46, 0.08) 1px, transparent 1px)
+          `,
+          backgroundSize: "160px 160px, 160px 160px, 32px 32px, 32px 32px",
+          backgroundPosition: "-1px -1px",
+        }}
+      >
+        <Card className="w-full max-w-md text-center p-8 space-y-5 bg-[#FFFDF5] border-[3px] border-[#0F3D2E] rounded-[18px] shadow-[9px_9px_0_#0F3D2E] text-[#0F3D2E]">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E]">
             <Lock className="h-8 w-8" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold tracking-tight">Login Required</h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              You must be signed in to attempt <span className="font-semibold text-foreground">&quot;{quiz.title}&quot;</span>. 
+            <h2 className="text-2xl font-[family-name:var(--font-display)] font-extrabold tracking-tight">Login Required</h2>
+            <p className="text-sm text-[#0F3D2E]/80 leading-relaxed font-medium">
+              You must be signed in to attempt <span className="font-bold text-[#0F3D2E] bg-[#FFE94A] px-1 py-0.5 rounded border border-[#0F3D2E]">&quot;{quiz.title}&quot;</span>. 
               Sign in to record your score on the live leaderboard.
             </p>
           </div>
           <div className="pt-2 flex flex-col gap-3">
             <Button
               onClick={() => router.push(`/login?redirect=/quizzes/${quizId}`)}
-              className="w-full bg-[#CC5500] hover:bg-[#B34700] text-white font-medium h-11"
+              className="w-full bg-[#FFE94A] hover:bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] font-bold rounded-[12px] shadow-[4px_4px_0_#0F3D2E] h-11"
             >
               Sign In to Continue
             </Button>
             <Link href="/quizzes">
-              <Button variant="ghost" className="w-full text-xs text-muted-foreground">
+              <Button variant="ghost" className="w-full text-xs font-bold text-[#0F3D2E]/70 hover:text-[#0F3D2E]">
                 Back to Available Quizzes
               </Button>
             </Link>
@@ -226,60 +238,74 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
 
   if (!currentQuestion) {
     return (
-      <div className="container mx-auto px-4 py-20 text-center max-w-md">
-        <h2 className="text-2xl font-bold mb-2">No Questions Ready</h2>
-        <p className="text-sm text-muted-foreground mb-6">
+      <div className="container mx-auto px-4 py-20 text-center max-w-md bg-[#FFFDF5] border-[3px] border-[#0F3D2E] rounded-[18px] shadow-[9px_9px_0_#0F3D2E] my-12 text-[#0F3D2E]">
+        <h2 className="text-2xl font-[family-name:var(--font-display)] font-extrabold mb-2">No Questions Ready</h2>
+        <p className="text-sm text-[#0F3D2E]/70 font-medium mb-6">
           This quiz doesn&apos;t have any active questions yet.
         </p>
         <Link href="/quizzes">
-          <Button>Back to Quizzes</Button>
+          <Button className="bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] font-bold rounded-[10px] shadow-[3px_3px_0_#0F3D2E]">
+            Back to Quizzes
+          </Button>
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[calc(100vh-8rem)] bg-muted/20 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
+    <div
+      className="min-h-[calc(100vh-4rem)] py-8 px-4 sm:px-6 bg-[#BDF2D5]"
+      style={{
+        backgroundImage: `
+          linear-gradient(rgba(15, 61, 46, 0.18) 1.5px, transparent 1.5px),
+          linear-gradient(90deg, rgba(15, 61, 46, 0.18) 1.5px, transparent 1.5px),
+          linear-gradient(rgba(15, 61, 46, 0.08) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(15, 61, 46, 0.08) 1px, transparent 1px)
+        `,
+        backgroundSize: "160px 160px, 160px 160px, 32px 32px, 32px 32px",
+        backgroundPosition: "-1px -1px",
+      }}
+    >
+      <div className="container mx-auto max-w-4xl">
         {/* Authentic Quiz Arena Top Bar */}
-        <div className="mb-4 flex items-center justify-between px-1 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1.5 font-medium">
-            <Flame className="h-3.5 w-3.5 text-[#CC5500]" />
-            <span>Quiz Arena Session • Verified Contender: <strong className="text-foreground">{user?.name}</strong></span>
+        <div className="mb-4 flex items-center justify-between px-1 text-xs font-bold text-[#0F3D2E]">
+          <div className="flex items-center gap-1.5">
+            <Flame className="h-4 w-4 text-[#0F3D2E]" />
+            <span>Quiz Arena Session • Verified Contender: <strong className="bg-[#FFE94A] px-1 rounded border border-[#0F3D2E]">{user?.name}</strong></span>
           </div>
           <div className="hidden sm:flex items-center gap-2">
-            <ShieldAlert className="h-3.5 w-3.5 text-[#607C52]" />
+            <ShieldAlert className="h-4 w-4 text-[#0F3D2E]" />
             <span>Anti-cheat active • Tab focus monitored</span>
           </div>
         </div>
 
         {/* Top Control Bar */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-xl border bg-card p-4 shadow-xs">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] p-5 shadow-[6px_6px_0_#0F3D2E] text-[#0F3D2E]">
           <div className="flex items-center gap-3">
             <Link href="/quizzes">
-              <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Button variant="ghost" size="icon" className="h-9 w-9 border-2 border-[#0F3D2E] rounded-[8px] bg-[#E3F9EE] hover:bg-[#FFE94A] text-[#0F3D2E]">
                 <ArrowLeft className="h-4 w-4" />
                 <span className="sr-only">Exit Quiz</span>
               </Button>
             </Link>
             <div>
-              <h1 className="text-base font-bold sm:text-lg line-clamp-1">{quiz.title}</h1>
-              <p className="text-xs text-muted-foreground">
+              <h1 className="text-base font-[family-name:var(--font-display)] font-extrabold sm:text-lg line-clamp-1">{quiz.title}</h1>
+              <p className="text-xs font-semibold text-[#0F3D2E]/70 font-mono">
                 Question {currentIndex + 1} of {totalQuestions}
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5">
+          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-3">
             {/* Timer mode switcher pill */}
-            <div className="flex items-center rounded-lg border bg-muted/50 p-0.5 text-xs">
+            <div className="flex items-center rounded-[10px] border-2 border-[#0F3D2E] bg-[#E3F9EE] p-1 text-xs">
               <button
                 type="button"
                 onClick={() => setTimerMode("quiz")}
-                className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-medium transition-colors ${
+                className={`flex items-center gap-1 rounded-[7px] px-2.5 py-1 font-bold transition-all ${
                   timerMode === "quiz"
-                    ? "bg-background text-foreground shadow-xs font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-[#FFE94A] text-[#0F3D2E] border border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]"
+                    : "text-[#0F3D2E]/70 hover:text-[#0F3D2E]"
                 }`}
                 title="Timer counts down total quiz duration"
               >
@@ -289,10 +315,10 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
               <button
                 type="button"
                 onClick={() => setTimerMode("question")}
-                className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-medium transition-colors ${
+                className={`flex items-center gap-1 rounded-[7px] px-2.5 py-1 font-bold transition-all ${
                   timerMode === "question"
-                    ? "bg-background text-foreground shadow-xs font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-[#FFE94A] text-[#0F3D2E] border border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]"
+                    : "text-[#0F3D2E]/70 hover:text-[#0F3D2E]"
                 }`}
                 title="Timer counts down 30s per question"
               >
@@ -319,9 +345,8 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
 
             <Button
               size="sm"
-              variant="default"
               onClick={() => setIsSubmitDialogOpen(true)}
-              className="font-medium bg-[#CC5500] hover:bg-[#B34700] text-white"
+              className="bg-[#0F3D2E] hover:bg-[#FFE94A] hover:text-[#0F3D2E] text-[#FFFDF5] border-2 border-[#0F3D2E] font-bold rounded-[10px] shadow-[3px_3px_0_#0F3D2E] transition-all px-4"
             >
               Finish
             </Button>
@@ -330,11 +355,16 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
 
         {/* Progress bar */}
         <div className="mb-6 space-y-2">
-          <div className="flex justify-between text-xs text-muted-foreground font-medium">
+          <div className="flex justify-between text-xs font-bold text-[#0F3D2E]">
             <span>Progress: {answeredCount}/{totalQuestions} Answered</span>
-            <span>{Math.round(progressPercent)}%</span>
+            <span className="font-mono">{Math.round(progressPercent)}%</span>
           </div>
-          <Progress value={progressPercent} className="h-2" />
+          <div className="h-3 w-full bg-[#FFFDF5] border-2 border-[#0F3D2E] rounded-full overflow-hidden shadow-inner">
+            <div
+              className="h-full bg-[#1F9D6B] transition-all duration-300"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
         </div>
 
         {/* Question Card */}
@@ -351,7 +381,7 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
             variant="outline"
             onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
             disabled={currentIndex === 0}
-            className="gap-2"
+            className="gap-2 bg-[#FFFDF5] text-[#0F3D2E] border-2 border-[#0F3D2E] font-bold rounded-[12px] shadow-[3px_3px_0_#0F3D2E] hover:bg-[#E3F9EE] disabled:opacity-50"
           >
             <ArrowLeft className="h-4 w-4" />
             Previous
@@ -360,7 +390,7 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
           {currentIndex < totalQuestions - 1 ? (
             <Button
               onClick={() => setCurrentIndex((prev) => Math.min(totalQuestions - 1, prev + 1))}
-              className="gap-2 bg-[#607C52] hover:bg-[#4E6642] text-white"
+              className="gap-2 bg-[#0F3D2E] hover:bg-[#FFE94A] hover:text-[#0F3D2E] text-[#FFFDF5] border-2 border-[#0F3D2E] font-bold rounded-[12px] shadow-[4px_4px_0_#0F3D2E] transition-all px-5"
             >
               Next
               <ArrowRight className="h-4 w-4" />
@@ -368,7 +398,7 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
           ) : (
             <Button
               onClick={() => setIsSubmitDialogOpen(true)}
-              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="gap-2 bg-[#FFE94A] hover:bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] font-bold rounded-[12px] shadow-[5px_5px_0_#0F3D2E] transition-all px-5"
             >
               Submit Quiz
               <CheckCircle2 className="h-4 w-4" />
@@ -377,11 +407,11 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
         </div>
 
         {/* Question palette / Jump grid */}
-        <div className="mt-8 rounded-xl border bg-card p-5">
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+        <div className="mt-8 rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] p-6 shadow-[6px_6px_0_#0F3D2E] text-[#0F3D2E]">
+          <div className="text-xs font-bold uppercase tracking-wider text-[#0F3D2E] mb-3">
             Question Overview Palette
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5">
             {questions.map((q, idx) => {
               const isAnswered = !!answers[q.id];
               const isCurrent = idx === currentIndex;
@@ -390,12 +420,12 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
                 <button
                   key={q.id}
                   onClick={() => setCurrentIndex(idx)}
-                  className={`h-9 w-9 rounded-lg text-xs font-bold transition-all border ${
+                  className={`h-9 w-9 rounded-[8px] text-xs font-black transition-all border-2 ${
                     isCurrent
-                      ? "ring-2 ring-primary ring-offset-2 bg-primary text-primary-foreground border-primary"
+                      ? "bg-[#FFE94A] text-[#0F3D2E] border-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E] scale-105"
                       : isAnswered
-                      ? "bg-[#607C52]/15 border-[#607C52]/40 text-[#607C52] dark:text-[#9CAF88]"
-                      : "bg-muted/60 border-border text-muted-foreground hover:bg-muted"
+                      ? "bg-[#1F9D6B] border-[#0F3D2E] text-[#FFFDF5]"
+                      : "bg-[#E3F9EE] border-[#0F3D2E] text-[#0F3D2E] hover:bg-[#FFE94A]"
                   }`}
                 >
                   {idx + 1}
@@ -408,26 +438,27 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
 
       {/* Confirmation Modal */}
       <Dialog open={isSubmitDialogOpen} onOpenChange={setIsSubmitDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-[#FFFDF5] border-[3px] border-[#0F3D2E] rounded-[18px] shadow-[9px_9px_0_#0F3D2E] text-[#0F3D2E]">
           <DialogHeader>
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10 text-amber-600 mb-2">
-              <AlertCircle className="h-6 w-6" />
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E] mb-3">
+              <AlertCircle className="h-7 w-7" />
             </div>
-            <DialogTitle className="text-center text-xl">Ready to submit?</DialogTitle>
-            <DialogDescription className="text-center pt-1">
-              You have answered <span className="font-semibold text-foreground">{answeredCount}</span> out of{" "}
-              <span className="font-semibold text-foreground">{totalQuestions}</span> questions.
+            <DialogTitle className="text-center text-2xl font-[family-name:var(--font-display)] font-extrabold">Ready to submit?</DialogTitle>
+            <DialogDescription className="text-center pt-2 text-[#0F3D2E]/80 font-medium">
+              You have answered <span className="font-bold text-[#0F3D2E] bg-[#FFE94A] px-1 rounded">{answeredCount}</span> out of{" "}
+              <span className="font-bold text-[#0F3D2E]">{totalQuestions}</span> questions.
               {answeredCount < totalQuestions && (
-                <span className="block mt-2 text-amber-600 dark:text-amber-400 font-medium text-xs">
+                <span className="block mt-3 text-[#E5484D] font-bold text-xs bg-[#E5484D]/10 p-2 rounded-lg border border-[#E5484D]">
                   ⚠️ You still have {totalQuestions - answeredCount} unanswered questions!
                 </span>
               )}
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex sm:justify-between gap-2 mt-4">
+          <DialogFooter className="flex sm:justify-between gap-3 mt-5">
             <Button
               variant="outline"
               onClick={() => setIsSubmitDialogOpen(false)}
+              className="border-2 border-[#0F3D2E] bg-[#FFFDF5] font-bold text-[#0F3D2E] rounded-[10px]"
             >
               Continue Quiz
             </Button>
@@ -436,9 +467,9 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
                 setIsSubmitDialogOpen(false);
                 handleFinishAttempt();
               }}
-              className="bg-[#CC5500] hover:bg-[#B34700] text-white"
+              className="bg-[#FFE94A] hover:bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] font-bold rounded-[10px] shadow-[3px_3px_0_#0F3D2E]"
             >
-              Submit & View Results
+              Submit &amp; View Results
             </Button>
           </DialogFooter>
         </DialogContent>
