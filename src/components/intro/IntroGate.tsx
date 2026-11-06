@@ -23,32 +23,59 @@ const STORAGE_KEY = "quizora-intro-seen";
 const PLAY_MS: Record<IntroVariant, number> = { deck: 4300, cube: 3900 };
 const EXIT_MS = 900;
 
+// In-memory session tracker to prevent intro from replaying on client-side navigation back to Home
+let hasIntroPlayed = false;
+
 export default function IntroGate({
   variant = "deck",
   once = true,
   logoSrc,
   children,
 }: Props) {
-  const [phase, setPhase] = useState<Phase>("check");
+  const [phase, setPhase] = useState<Phase>(() => {
+    if (typeof window !== "undefined" && once) {
+      if (hasIntroPlayed) return "done";
+      try {
+        if (sessionStorage.getItem(STORAGE_KEY) === "1") {
+          hasIntroPlayed = true;
+          return "done";
+        }
+      } catch {}
+    }
+    return "check";
+  });
 
   // Decide whether to play (runs on the client only)
   useEffect(() => {
     let seen = false;
     try {
-      seen = once && sessionStorage.getItem(STORAGE_KEY) === "1";
+      seen = once && (hasIntroPlayed || sessionStorage.getItem(STORAGE_KEY) === "1");
     } catch {}
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setPhase(seen || reduce ? "done" : "play");
+    if (seen || reduce) {
+      setPhase("done");
+    } else {
+      hasIntroPlayed = true;
+      try {
+        sessionStorage.setItem(STORAGE_KEY, "1");
+      } catch {}
+      setPhase("play");
+    }
   }, [once]);
 
   // play -> exit -> done
   useEffect(() => {
     if (phase === "play") {
+      hasIntroPlayed = true;
+      try {
+        sessionStorage.setItem(STORAGE_KEY, "1");
+      } catch {}
       const t = setTimeout(() => setPhase("exit"), PLAY_MS[variant]);
       return () => clearTimeout(t);
     }
     if (phase === "exit") {
       const t = setTimeout(() => {
+        hasIntroPlayed = true;
         try {
           sessionStorage.setItem(STORAGE_KEY, "1");
         } catch {}

@@ -3,9 +3,9 @@
    Brand tokens (tweak here if your exact colours differ)
    ─────────────────────────────────────────────── */
 .overlay {
-  --qz-bg: #faf9f6;
-  --qz-ink: #1f2a24;
-  --qz-orange: #d2570a;
+  --qz-bg: var(--intro-bg, #faf9f6);
+  --qz-ink: var(--intro-ink, #1f2a24);
+  --qz-orange: var(--intro-accent, #d2570a);
   --qz-green: #6b8f5a;
 
   position: fixed;
@@ -15,6 +15,7 @@
   overflow: hidden;
   will-change: transform;
   color: var(--qz-ink);
+  font-family: var(--intro-font, inherit);
 }
 
 /* Orange edge that trails the curtain as it lifts */
@@ -53,8 +54,8 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--qz-ink);
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(31, 42, 36, 0.14);
+  background: var(--intro-skip-bg, rgba(255, 255, 255, 0.75));
+  border: 1px solid var(--intro-skip-line, rgba(31, 42, 36, 0.14));
   border-radius: 999px;
   padding: 8px 14px;
   cursor: pointer;
@@ -63,8 +64,8 @@
   transition: background 0.2s, border-color 0.2s;
 }
 .skip:hover {
-  background: #fff;
-  border-color: rgba(31, 42, 36, 0.3);
+  background: var(--intro-skip-bg-hover, #fff);
+  border-color: var(--qz-ink);
 }
 .skip:focus-visible {
   outline: 2px solid var(--qz-orange);

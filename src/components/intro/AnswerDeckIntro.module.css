@@ -5,20 +5,28 @@
    2.9s+      wordmark + chip
    ───────────────────────────────────────────── */
 .stage {
-  --orange: #d2570a;
-  --ink: #1f2a24;
-  --green: #6b8f5a;
-  --logo-green: #7f9f70;
-  --line: #e4e0d6;
-  --tan: #fbe7d6;
+  /* Theme hooks: set --intro-* on :root to re-colour the intro. Defaults = original look. */
+  --orange: var(--intro-accent, #d2570a);
+  --on-accent: var(--intro-on-accent, #fff);
+  --ink: var(--intro-ink, #1f2a24);
+  --green: var(--intro-success, #6b8f5a);
+  --green-soft: var(--intro-success-soft, #eef2e8);
+  --logo-green: #7f9f70; /* logo colour, never themed */
+  --line: var(--intro-line, #e4e0d6);
+  --bw: var(--intro-bw, 1.5px);
+  --tan: var(--intro-soft, #fbe7d6);
+  --tan-line: var(--intro-soft-line, #f1c8a4);
+  --surface: var(--intro-surface, #fff);
+  --surface-2: var(--intro-surface-2, #f1efe8);
+  --on-surface: var(--intro-on-surface, #1f2a24);
 
   position: absolute;
   inset: 0;
   overflow: hidden;
   background:
-    radial-gradient(60rem 38rem at 10% 100%, rgba(236, 140, 70, 0.22), transparent 62%),
-    radial-gradient(48rem 30rem at 90% 0%, rgba(120, 150, 100, 0.16), transparent 62%),
-    #faf9f6;
+    radial-gradient(60rem 38rem at 10% 100%, var(--intro-glow-a, rgba(236, 140, 70, 0.22)), transparent 62%),
+    radial-gradient(48rem 30rem at 90% 0%, var(--intro-glow-b, rgba(120, 150, 100, 0.16)), transparent 62%),
+    var(--intro-bg, #faf9f6);
 }
 
 .grain {
@@ -40,8 +48,8 @@
   transform-origin: 50% 100%;
   transform: perspective(520px) rotateX(64deg);
   background-image:
-    linear-gradient(rgba(31, 42, 36, 0.09) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(31, 42, 36, 0.09) 1px, transparent 1px);
+    linear-gradient(color-mix(in srgb, var(--ink) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--ink) 10%, transparent) 1px, transparent 1px);
   background-size: 64px 64px;
   -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 92%);
   mask-image: linear-gradient(to top, #000 10%, transparent 92%);
@@ -158,11 +166,11 @@
   position: absolute;
   inset: 0;
   border-radius: 16px;
-  background: #fff;
-  border: 1.5px solid var(--line);
+  background: var(--surface);
+  border: var(--bw) solid var(--line);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 22px 44px -22px rgba(60, 40, 10, 0.4);
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 22px 44px -22px var(--intro-shadow, rgba(60, 40, 10, 0.4));
   display: flex;
   align-items: center;
   padding: 0 14px;
@@ -175,7 +183,7 @@
 }
 @keyframes pick {
   to {
-    background: #eef2e8;
+    background: var(--green-soft);
     border-color: var(--green);
     box-shadow:
       0 0 0 3px rgba(107, 143, 90, 0.22),
@@ -220,9 +228,9 @@
   place-items: center;
   font-size: 15px;
   font-weight: 700;
-  color: #4b5a50;
-  background: #f1efe8;
-  border: 1px solid #e6e2d8;
+  color: var(--on-surface);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
 }
 .picked .badge {
   animation: badgePick 0.3s 1.4s ease forwards;
@@ -238,7 +246,7 @@
 .text {
   font-size: 19px;
   font-weight: 500;
-  color: var(--ink);
+  color: var(--on-surface);
   white-space: nowrap;
 }
 
@@ -306,7 +314,7 @@
   font-weight: 700;
   color: var(--orange);
   background: var(--tan);
-  border: 1px solid #f1c8a4;
+  border: 1px solid var(--tan-line);
   padding: 5px 10px;
   border-radius: 999px;
   opacity: 0;
@@ -348,6 +356,7 @@
 }
 .wm {
   display: inline-flex;
+  font-family: var(--intro-font-display, inherit);
   font-size: clamp(44px, 9vw, 60px);
   font-weight: 800;
   line-height: 1.05;
@@ -373,7 +382,7 @@
   font-weight: 600;
   color: var(--orange);
   background: var(--tan);
-  border: 1px solid #f1c8a4;
+  border: 1px solid var(--tan-line);
   padding: 6px 13px;
   border-radius: 999px;
   opacity: 0;

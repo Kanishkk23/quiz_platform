@@ -62,14 +62,22 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
   if (mounted && !result && questions.length === 0) {
     return (
       <div className="container mx-auto px-4 py-20 text-center max-w-md">
-        <Trophy className="mx-auto h-12 w-12 text-muted-foreground/40 mb-3" />
-        <h2 className="text-2xl font-bold mb-2">No Result Recorded</h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          You haven&apos;t completed this quiz yet or the quiz is not currently available.
-        </p>
-        <Link href="/quizzes">
-          <Button>Browse Quizzes</Button>
-        </Link>
+        <div className="rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] p-8 shadow-[9px_9px_0_#0F3D2E]">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FFE94A] border-2 border-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E] mb-4">
+            <Trophy className="h-7 w-7 text-[#0F3D2E]" />
+          </div>
+          <h2 className="text-2xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E] mb-2">
+            No Result Recorded
+          </h2>
+          <p className="text-sm font-medium text-[#0F3D2E]/70 mb-6">
+            You haven&apos;t completed this quiz yet or the quiz is not currently available.
+          </p>
+          <Link href="/quizzes">
+            <Button className="bg-[#FFE94A] hover:bg-[#FFE94A]/90 text-[#0F3D2E] font-extrabold border-2 border-[#0F3D2E] rounded-[10px] shadow-[3px_3px_0_#0F3D2E]">
+              Browse Quizzes
+            </Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -97,25 +105,25 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
     if (percentage >= 90) {
       return {
         label: "🏆 Master Tier • Champion Performance",
-        color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+        color: "bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]",
         message: "Incredible accuracy! You have a high chance of securing the #1 Gold spot on the leaderboard.",
       };
     } else if (percentage >= 70) {
       return {
         label: "🥈 Pro Tier • Podium Contender",
-        color: "bg-[#CC5500]/10 text-[#CC5500] border-[#CC5500]/30",
+        color: "bg-[#E3F9EE] text-[#0F3D2E] border-2 border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]",
         message: "Outstanding work! You have strong grasp of this topic and earned a competitive rank.",
       };
     } else if (percentage >= 50) {
       return {
         label: "🥉 Challenger Tier • Solid Attempt",
-        color: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+        color: "bg-[#FFFDF5] text-[#0F3D2E] border-2 border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]",
         message: "Good effort! A few targeted review sessions and you will break into the top 3.",
       };
     } else {
       return {
-        label: "🎯 Apprentice Tier • Practice Required",
-        color: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
+        label: "🎯 Practice Tier • Keep Going",
+        color: "bg-[#E5484D]/15 text-[#E5484D] border-2 border-[#E5484D] shadow-[2px_2px_0_#E5484D]",
         message: "Review the question solutions below and retake the quiz to level up your standing.",
       };
     }
@@ -137,110 +145,118 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
   });
 
   return (
-    <div className="container mx-auto px-4 py-10 max-w-4xl">
+    <div className="container mx-auto max-w-4xl">
       {/* Score Summary Hero Card */}
-      <Card className="mb-8 border shadow-sm">
-        <CardHeader className="text-center pb-2">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-2">
-            <Trophy className="h-7 w-7 text-[#CC5500]" />
+      <div className="mb-8 rounded-[20px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] p-6 sm:p-8 shadow-[9px_9px_0_#0F3D2E]">
+        <div className="text-center pb-2">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#FFE94A] border-[2.5px] border-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E] mb-3">
+            <Trophy className="h-8 w-8 text-[#0F3D2E]" />
           </div>
-          <CardTitle className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-[family-name:var(--font-display)] font-extrabold tracking-tight text-[#0F3D2E]">
             Quiz Complete: {title}
-          </CardTitle>
-          <CardDescription className="text-sm">
+          </h1>
+          <p className="text-sm font-medium text-[#0F3D2E]/80 mt-1">
             Your performance has been evaluated and recorded for the {title} Leaderboard
-          </CardDescription>
+          </p>
 
-          <div className="pt-2">
+          <div className="pt-3">
             <span
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold border ${performance.color}`}
+              className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-extrabold ${performance.color}`}
             >
               {performance.label}
             </span>
           </div>
-        </CardHeader>
+        </div>
 
-        <CardContent className="pt-4 pb-6">
-          <p className="text-center text-sm text-muted-foreground mb-6 max-w-md mx-auto">
+        <div className="pt-4 pb-2">
+          <p className="text-center text-sm font-medium text-[#0F3D2E]/70 mb-6 max-w-md mx-auto">
             {performance.message}
           </p>
 
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-            <div className="rounded-xl border bg-card p-3 sm:p-4">
-              <div className="flex items-center justify-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-semibold mb-1">
-                <CheckCircle2 className="h-4 w-4" />
-                Correct Answers
+            <div className="rounded-[14px] border-[2px] border-[#0F3D2E] bg-[#E3F9EE] p-3 sm:p-4 shadow-[3px_3px_0_#0F3D2E]">
+              <div className="flex items-center justify-center gap-1.5 text-[#0F3D2E] text-xs font-bold mb-1">
+                <CheckCircle2 className="h-4 w-4 text-[#1F9D6B]" />
+                Correct
               </div>
-              <div className="text-xl sm:text-2xl font-bold">{correctCount}</div>
+              <div className="text-2xl sm:text-3xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E]">
+                {correctCount}
+              </div>
             </div>
 
-            <div className="rounded-xl border bg-card p-3 sm:p-4">
-              <div className="flex items-center justify-center gap-1.5 text-rose-600 dark:text-rose-400 text-xs font-semibold mb-1">
-                <XCircle className="h-4 w-4" />
-                Incorrect Answers
+            <div className="rounded-[14px] border-[2px] border-[#0F3D2E] bg-[#FFFDF5] p-3 sm:p-4 shadow-[3px_3px_0_#0F3D2E]">
+              <div className="flex items-center justify-center gap-1.5 text-[#E5484D] text-xs font-bold mb-1">
+                <XCircle className="h-4 w-4 text-[#E5484D]" />
+                Incorrect
               </div>
-              <div className="text-xl sm:text-2xl font-bold">{incorrectCount}</div>
+              <div className="text-2xl sm:text-3xl font-[family-name:var(--font-display)] font-extrabold text-[#E5484D]">
+                {incorrectCount}
+              </div>
             </div>
 
-            <div className="rounded-xl border bg-card p-3 sm:p-4">
-              <div className="flex items-center justify-center gap-1.5 text-muted-foreground text-xs font-semibold mb-1">
+            <div className="rounded-[14px] border-[2px] border-[#0F3D2E] bg-[#FFFDF5] p-3 sm:p-4 shadow-[3px_3px_0_#0F3D2E]">
+              <div className="flex items-center justify-center gap-1.5 text-[#0F3D2E]/70 text-xs font-bold mb-1">
                 <HelpCircle className="h-4 w-4" />
                 Skipped
               </div>
-              <div className="text-xl sm:text-2xl font-bold">{unansweredCount}</div>
+              <div className="text-2xl sm:text-3xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E]">
+                {unansweredCount}
+              </div>
             </div>
 
-            <div className="rounded-xl border bg-card p-3 sm:p-4">
-              <div className="flex items-center justify-center gap-1.5 text-[#CC5500] text-xs font-semibold mb-1">
-                <Clock className="h-4 w-4" />
+            <div className="rounded-[14px] border-[2px] border-[#0F3D2E] bg-[#FFE94A]/40 p-3 sm:p-4 shadow-[3px_3px_0_#0F3D2E]">
+              <div className="flex items-center justify-center gap-1.5 text-[#0F3D2E] text-xs font-bold mb-1">
+                <Clock className="h-4 w-4 text-[#0F3D2E]" />
                 Time Taken
               </div>
-              <div className="text-xl sm:text-2xl font-bold">{formattedTime}</div>
+              <div className="text-xl sm:text-2xl font-[family-name:var(--font-mono)] font-bold text-[#0F3D2E]">
+                {formattedTime}
+              </div>
             </div>
           </div>
 
           {/* Segmented Result Breakdown Bar */}
           <div className="mt-6 space-y-2">
-            <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
+            <div className="flex items-center justify-between text-xs text-[#0F3D2E] font-bold">
               <span>Answer Distribution Breakdown</span>
               <span>{totalQuestions} Questions Total</span>
             </div>
-            <div className="h-3 w-full rounded-full bg-muted overflow-hidden flex shadow-inner">
+            <div className="h-3.5 w-full rounded-full border-2 border-[#0F3D2E] bg-[#E3F9EE] overflow-hidden flex shadow-inner">
               {correctPercent > 0 && (
                 <div
                   style={{ width: `${correctPercent}%` }}
-                  className="bg-emerald-500 h-full transition-all"
+                  className="bg-[#0F3D2E] h-full transition-all"
                   title={`Correct: ${correctCount} (${correctPercent}%)`}
                 />
               )}
               {incorrectPercent > 0 && (
                 <div
                   style={{ width: `${incorrectPercent}%` }}
-                  className="bg-rose-500 h-full transition-all"
+                  className="bg-[#E5484D] h-full transition-all"
                   title={`Incorrect: ${incorrectCount} (${incorrectPercent}%)`}
                 />
               )}
               {skippedPercent > 0 && (
                 <div
                   style={{ width: `${skippedPercent}%` }}
-                  className="bg-slate-400/50 h-full transition-all"
+                  className="bg-[#0F3D2E]/20 h-full transition-all"
                   title={`Skipped: ${unansweredCount} (${skippedPercent}%)`}
                 />
               )}
             </div>
-            <div className="flex items-center gap-4 text-[11px] text-muted-foreground pt-1">
+            <div className="flex items-center gap-4 text-xs font-bold text-[#0F3D2E]/80 pt-1">
               <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="h-2.5 w-2.5 rounded-full bg-[#0F3D2E]" />
                 Correct: {correctCount}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-rose-500" />
+                <span className="h-2.5 w-2.5 rounded-full bg-[#E5484D]" />
                 Incorrect: {incorrectCount}
               </span>
               {unansweredCount > 0 && (
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-slate-400" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#0F3D2E]/20" />
                   Skipped: {unansweredCount}
                 </span>
               )}
@@ -250,78 +266,86 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
           {/* Action buttons with Per-Quiz Leaderboard link */}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href={`/quizzes/${quizId}`}>
-              <Button variant="outline" className="gap-2">
+              <Button
+                variant="outline"
+                className="gap-2 bg-[#FFFDF5] hover:bg-[#E3F9EE] text-[#0F3D2E] font-bold border-2 border-[#0F3D2E] rounded-[10px] shadow-[3px_3px_0_#0F3D2E]"
+              >
                 <RotateCcw className="h-4 w-4" />
                 Retake Quiz
               </Button>
             </Link>
 
             <Link href={`/leaderboard?quizId=${quizId}`}>
-              <Button className="gap-2 bg-[#CC5500] hover:bg-[#B34700] text-white">
-                <Trophy className="h-4 w-4 text-white" />
+              <Button className="gap-2 bg-[#FFE94A] hover:bg-[#FFE94A]/90 text-[#0F3D2E] font-extrabold border-2 border-[#0F3D2E] rounded-[10px] shadow-[3px_3px_0_#0F3D2E]">
+                <Trophy className="h-4 w-4 text-[#0F3D2E]" />
                 View Quiz Leaderboard
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
 
             <Link href="/profile">
-              <Button variant="secondary" className="gap-2">
+              <Button
+                variant="secondary"
+                className="gap-2 bg-[#E3F9EE] hover:bg-[#FFFDF5] text-[#0F3D2E] font-bold border-2 border-[#0F3D2E] rounded-[10px] shadow-[3px_3px_0_#0F3D2E]"
+              >
                 My Profile History
               </Button>
             </Link>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Answer Key Review Section */}
       {questions.length > 0 && (
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold tracking-tight">Review Question Solutions</h2>
-              <p className="text-xs text-muted-foreground">
+              <h2 className="text-xl font-[family-name:var(--font-display)] font-extrabold tracking-tight text-[#0F3D2E]">
+                Review Question Solutions
+              </h2>
+              <p className="text-xs font-medium text-[#0F3D2E]/70">
                 Examine your answers against verified solutions
               </p>
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex items-center rounded-lg border bg-muted/50 p-1 text-xs">
+            <div className="flex items-center rounded-[10px] border-2 border-[#0F3D2E] bg-[#FFFDF5] p-1 text-xs">
               <button
                 onClick={() => setReviewFilter("all")}
-                className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+                className={`rounded-[7px] px-3 py-1 font-bold transition-all ${
                   reviewFilter === "all"
-                    ? "bg-background text-foreground shadow-xs font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-[#FFE94A] text-[#0F3D2E] border border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]"
+                    : "text-[#0F3D2E]/70 hover:text-[#0F3D2E]"
                 }`}
               >
                 All ({questions.length})
               </button>
               <button
                 onClick={() => setReviewFilter("correct")}
-                className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+                className={`rounded-[7px] px-3 py-1 font-bold transition-all ${
                   reviewFilter === "correct"
-                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-[#E3F9EE] text-[#0F3D2E] border border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]"
+                    : "text-[#0F3D2E]/70 hover:text-[#0F3D2E]"
                 }`}
               >
                 Correct ({correctCount})
               </button>
               <button
                 onClick={() => setReviewFilter("incorrect")}
-                className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+                className={`rounded-[7px] px-3 py-1 font-bold transition-all ${
                   reviewFilter === "incorrect"
-                    ? "bg-rose-500/15 text-rose-700 dark:text-rose-400 font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-[#E5484D]/15 text-[#E5484D] border border-[#E5484D] shadow-[2px_2px_0_#E5484D]"
+                    : "text-[#0F3D2E]/70 hover:text-[#0F3D2E]"
                 }`}
               >
                 Incorrect ({incorrectCount})
               </button>
               <button
                 onClick={() => setReviewFilter("skipped")}
-                className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+                className={`rounded-[7px] px-3 py-1 font-bold transition-all ${
                   reviewFilter === "skipped"
-                    ? "bg-slate-500/15 text-slate-700 dark:text-slate-400 font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-[#FFFDF5] text-[#0F3D2E] border border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]"
+                    : "text-[#0F3D2E]/70 hover:text-[#0F3D2E]"
                 }`}
               >
                 Skipped ({unansweredCount})
@@ -336,84 +360,76 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
               const isSkipped = !userAnswerId;
 
               return (
-                <Card
+                <div
                   key={q.id}
-                  className={`border transition-colors ${
-                    isCorrect
-                      ? "border-emerald-500/30 bg-emerald-500/[0.02]"
-                      : isSkipped
-                      ? "border-border"
-                      : "border-rose-500/30 bg-rose-500/[0.02]"
-                  }`}
+                  className="rounded-[16px] border-[2.5px] border-[#0F3D2E] bg-[#FFFDF5] p-5 shadow-[5px_5px_0_#0F3D2E] text-[#0F3D2E]"
                 >
-                  <CardHeader className="p-4 pb-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-semibold text-muted-foreground">
-                        Question {idx + 1}
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#0F3D2E]/60">
+                      Question {idx + 1}
+                    </span>
+                    {isCorrect ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#E3F9EE] border-2 border-[#0F3D2E] text-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]">
+                        <CheckCircle2 className="h-3 w-3 text-[#1F9D6B]" />
+                        Correct (+10 pts)
                       </span>
-                      {isCorrect ? (
-                        <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 gap-1 text-[11px]">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Correct (+10 pts)
-                        </Badge>
-                      ) : isSkipped ? (
-                        <Badge variant="outline" className="text-muted-foreground gap-1 text-[11px]">
-                          <HelpCircle className="h-3 w-3" />
-                          Skipped
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 gap-1 text-[11px]">
-                          <XCircle className="h-3 w-3" />
-                          Incorrect
-                        </Badge>
-                      )}
-                    </div>
-                    <CardTitle className="text-base font-semibold pt-1">
-                      {q.text}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-2 space-y-2">
-                    <div className="grid grid-cols-1 gap-2 pt-1">
-                      {q.options.map((opt) => {
-                        const isUserPick = opt.id === userAnswerId;
-                        const isCorrectAnswer = opt.id === q.correctOptionId;
-
-                        let style = "border-border/60 bg-muted/20 text-muted-foreground";
-
-                        if (isCorrectAnswer) {
-                          style = "border-emerald-500 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 font-medium";
-                        } else if (isUserPick && !isCorrect) {
-                          style = "border-rose-500 bg-rose-500/15 text-rose-800 dark:text-rose-300 line-through";
-                        }
-
-                        return (
-                          <div
-                            key={opt.id}
-                            className={`flex items-center justify-between p-2.5 rounded-lg border text-xs ${style}`}
-                          >
-                            <span>{opt.text}</span>
-                            {isCorrectAnswer && (
-                              <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">
-                                Verified Solution ✓
-                              </span>
-                            )}
-                            {isUserPick && !isCorrectAnswer && (
-                              <span className="text-[10px] uppercase font-bold text-rose-600 dark:text-rose-400">
-                                Your Choice ✗
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {q.explanation && (
-                      <p className="text-xs text-muted-foreground pt-2 italic border-t border-border/40">
-                        <strong>Explanation:</strong> {q.explanation}
-                      </p>
+                    ) : isSkipped ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border-2 border-[#0F3D2E]/40 text-[#0F3D2E]/60">
+                        <HelpCircle className="h-3 w-3" />
+                        Skipped
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#E5484D]/15 border-2 border-[#E5484D] text-[#E5484D] shadow-[2px_2px_0_#E5484D]">
+                        <XCircle className="h-3 w-3" />
+                        Incorrect
+                      </span>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+
+                  <h3 className="text-base font-bold text-[#0F3D2E] mb-3">
+                    {q.text}
+                  </h3>
+
+                  <div className="grid grid-cols-1 gap-2">
+                    {q.options.map((opt) => {
+                      const isUserPick = opt.id === userAnswerId;
+                      const isCorrectAnswer = opt.id === q.correctOptionId;
+
+                      let style = "border-[1.5px] border-[#0F3D2E]/20 bg-[#FFFDF5] text-[#0F3D2E]/80";
+
+                      if (isCorrectAnswer) {
+                        style = "border-2 border-[#0F3D2E] bg-[#E3F9EE] text-[#0F3D2E] font-bold shadow-[2px_2px_0_#0F3D2E]";
+                      } else if (isUserPick && !isCorrect) {
+                        style = "border-2 border-[#E5484D] bg-[#E5484D]/10 text-[#E5484D] font-bold line-through";
+                      }
+
+                      return (
+                        <div
+                          key={opt.id}
+                          className={`flex items-center justify-between p-3 rounded-[10px] text-xs ${style}`}
+                        >
+                          <span className="font-medium">{opt.text}</span>
+                          {isCorrectAnswer && (
+                            <span className="text-[10px] uppercase font-extrabold text-[#0F3D2E] bg-[#FFE94A] px-2 py-0.5 rounded-[4px] border border-[#0F3D2E]">
+                              Verified Solution ✓
+                            </span>
+                          )}
+                          {isUserPick && !isCorrectAnswer && (
+                            <span className="text-[10px] uppercase font-extrabold text-[#E5484D] bg-[#E5484D]/10 px-2 py-0.5 rounded-[4px] border border-[#E5484D]">
+                              Your Choice ✗
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {q.explanation && (
+                    <div className="mt-3 p-3 rounded-[8px] border-l-4 border-[#0F3D2E] bg-[#E3F9EE]/50 text-xs text-[#0F3D2E] font-medium">
+                      <strong className="font-bold">Explanation:</strong> {q.explanation}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>

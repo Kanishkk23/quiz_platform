@@ -150,3 +150,37 @@
     @apply font-sans;
   }
 }
+
+
+/* Option 4 · Study Lab — append to app/globals.css
+   Re-colours the existing intro (CSS only) and gives the rest of the site shared tokens. */
+:root {
+  /* Shared tokens for restyling the rest of the site */
+  --qz-bg: #bdf2d5; --qz-ink: #0f3d2e; --qz-accent: #ffe94a; --qz-paper: #fffdf5;
+  --qz-border: 2.5px solid #0f3d2e; --qz-radius: 12px; --qz-shadow: 5px 5px 0 #0f3d2e;
+  /* Intro: reuse the landing fonts */
+  --intro-font: var(--font-body);
+  --intro-font-display: var(--font-display);
+
+  /* Intro colours */
+  --intro-bg: #bdf2d5;
+  --intro-glow-a: rgba(255, 233, 74, 0.55);
+  --intro-glow-b: rgba(255, 255, 255, 0.6);
+  --intro-ink: #0f3d2e;
+  --intro-accent: #0f3d2e;
+  --intro-on-accent: #ffe94a;
+  --intro-soft: #ffe94a;
+  --intro-soft-line: #0f3d2e;
+  --intro-surface: #fffdf5;
+  --intro-surface-2: #e3f9ee;
+  --intro-on-surface: #0f3d2e;
+  --intro-line: #0f3d2e;
+  --intro-bw: 2.5px;
+  --intro-success: #1f9d6b;
+  --intro-success-soft: #d6f5e3;
+  --intro-shadow: rgba(15, 61, 46, 0.4);
+  --intro-flash: rgba(255, 233, 74, 0.8);
+  --intro-skip-bg: #fffdf5;
+  --intro-skip-bg-hover: #ffe94a;
+  --intro-skip-line: #0f3d2e;
+}

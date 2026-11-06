@@ -3,9 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Table,
@@ -94,62 +92,73 @@ export function ProfileView() {
   };
 
   const displayName = user?.name || "Quiz Participant";
-  const displayEmail = user?.email || "guest@quizplatform.local";
+  const displayEmail = user?.email || "guest@quizora.local";
   const initial = displayName.charAt(0).toUpperCase();
 
   if (mounted && !isAuthenticated) {
     return (
       <div className="container mx-auto px-4 py-20 text-center max-w-md">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
-          <UserIcon className="h-7 w-7" />
-        </div>
-        <h2 className="text-2xl font-bold tracking-tight mb-2">Please Sign In</h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Your profile and attempt history are private. Please sign in to your account to view your performance metrics.
-        </p>
-        <div className="flex items-center justify-center gap-3">
-          <Link href="/login">
-            <Button>Sign In</Button>
-          </Link>
-          <Link href="/register">
-            <Button variant="outline">Create Account</Button>
-          </Link>
+        <div className="rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] p-8 shadow-[9px_9px_0_#0F3D2E]">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FFE94A] border-2 border-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E] mb-4">
+            <UserIcon className="h-7 w-7 text-[#0F3D2E]" />
+          </div>
+          <h2 className="text-2xl font-[family-name:var(--font-display)] font-extrabold tracking-tight text-[#0F3D2E] mb-2">
+            Please Sign In
+          </h2>
+          <p className="text-sm font-medium text-[#0F3D2E]/70 mb-6">
+            Your profile and attempt history are private. Please sign in to your account to view your performance metrics.
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <Link href="/login">
+              <Button className="bg-[#FFE94A] hover:bg-[#FFE94A]/90 text-[#0F3D2E] font-extrabold border-2 border-[#0F3D2E] rounded-[10px] shadow-[3px_3px_0_#0F3D2E]">
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button
+                variant="outline"
+                className="bg-[#FFFDF5] hover:bg-[#E3F9EE] text-[#0F3D2E] font-bold border-2 border-[#0F3D2E] rounded-[10px] shadow-[3px_3px_0_#0F3D2E]"
+              >
+                Create Account
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-10 max-w-5xl">
+    <div className="container mx-auto max-w-5xl">
       {/* Profile Header Card */}
-      <Card className="border shadow-sm mb-8 overflow-hidden">
-        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background p-6 sm:p-8">
+      <div className="rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] shadow-[9px_9px_0_#0F3D2E] mb-8 overflow-hidden">
+        <div className="bg-[#E3F9EE] border-b-2 border-[#0F3D2E] p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
-            <Avatar className="h-20 w-20 border-2 border-primary/20 shadow-sm">
-              <AvatarFallback className="bg-primary text-primary-foreground font-bold text-2xl">
+            <Avatar className="h-20 w-20 border-[2.5px] border-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E]">
+              <AvatarFallback className="bg-[#FFE94A] text-[#0F3D2E] font-black text-2xl">
                 {initial}
               </AvatarFallback>
             </Avatar>
 
             <div className="flex-1 space-y-1.5">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-[family-name:var(--font-display)] font-extrabold tracking-tight text-[#0F3D2E]">
                   {displayName}
                 </h1>
-                <Badge variant="secondary" className="w-fit mx-auto sm:mx-0 text-xs">
+                <span className="w-fit mx-auto sm:mx-0 text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#0F3D2E] bg-[#FFE94A] text-[#0F3D2E]">
                   {isAuthenticated ? "Authenticated Member" : "Guest Mode"}
-                </Badge>
+                </span>
               </div>
 
-              <p className="text-sm text-muted-foreground">{displayEmail}</p>
+              <p className="text-sm font-medium text-[#0F3D2E]/70">{displayEmail}</p>
 
-              <div className="flex items-center justify-center sm:justify-start gap-4 pt-2 text-xs text-muted-foreground">
+              <div className="flex items-center justify-center sm:justify-start gap-4 pt-2 text-xs font-bold text-[#0F3D2E]/80">
                 <span className="flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5 text-primary" />
+                  <Calendar className="h-3.5 w-3.5 text-[#0F3D2E]" />
                   Active Learner
                 </span>
                 <span className="flex items-center gap-1">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-[#1F9D6B]" />
                   {totalAttempts} Completed Quizzes
                 </span>
               </div>
@@ -157,7 +166,7 @@ export function ProfileView() {
 
             <div className="flex items-center gap-2">
               <Link href="/quizzes">
-                <Button size="sm" className="gap-2">
+                <Button size="sm" className="gap-2 bg-[#FFE94A] hover:bg-[#FFE94A]/90 text-[#0F3D2E] font-extrabold border-2 border-[#0F3D2E] rounded-[10px] shadow-[3px_3px_0_#0F3D2E]">
                   <BookOpen className="h-4 w-4" />
                   Take a Quiz
                 </Button>
@@ -165,68 +174,66 @@ export function ProfileView() {
             </div>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Performance Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Card className="border shadow-xs">
-          <CardContent className="p-4 sm:p-5 flex flex-col justify-between">
-            <div className="flex items-center justify-between text-muted-foreground mb-2">
-              <span className="text-xs font-medium">Quizzes Taken</span>
-              <BookOpen className="h-4 w-4 text-primary" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-black">{totalAttempts}</div>
-            <p className="text-[11px] text-muted-foreground mt-1">Total finished attempts</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-[14px] border-[2.5px] border-[#0F3D2E] bg-[#FFFDF5] p-4 sm:p-5 shadow-[5px_5px_0_#0F3D2E] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#0F3D2E] mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider">Quizzes Taken</span>
+            <BookOpen className="h-4 w-4 text-[#0F3D2E]" />
+          </div>
+          <div className="text-2xl sm:text-3xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E]">
+            {totalAttempts}
+          </div>
+          <p className="text-[11px] font-medium text-[#0F3D2E]/60 mt-1">Total finished attempts</p>
+        </div>
 
-        <Card className="border shadow-xs">
-          <CardContent className="p-4 sm:p-5 flex flex-col justify-between">
-            <div className="flex items-center justify-between text-muted-foreground mb-2">
-              <span className="text-xs font-medium">Average Accuracy</span>
-              <Target className="h-4 w-4 text-emerald-500" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
-              {averagePercentage}%
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-1">Across all quizzes</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-[14px] border-[2.5px] border-[#0F3D2E] bg-[#E3F9EE] p-4 sm:p-5 shadow-[5px_5px_0_#0F3D2E] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#0F3D2E] mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider">Average Accuracy</span>
+            <Target className="h-4 w-4 text-[#1F9D6B]" />
+          </div>
+          <div className="text-2xl sm:text-3xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E]">
+            {averagePercentage}%
+          </div>
+          <p className="text-[11px] font-medium text-[#0F3D2E]/70 mt-1">Across all quizzes</p>
+        </div>
 
-        <Card className="border shadow-xs">
-          <CardContent className="p-4 sm:p-5 flex flex-col justify-between">
-            <div className="flex items-center justify-between text-muted-foreground mb-2">
-              <span className="text-xs font-medium">Highest Score</span>
-              <Trophy className="h-4 w-4 text-amber-500" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
-              {bestScore}%
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-1">Personal best accuracy</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-[14px] border-[2.5px] border-[#0F3D2E] bg-[#FFE94A]/30 p-4 sm:p-5 shadow-[5px_5px_0_#0F3D2E] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#0F3D2E] mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider">Highest Score</span>
+            <Trophy className="h-4 w-4 text-[#0F3D2E]" />
+          </div>
+          <div className="text-2xl sm:text-3xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E]">
+            {bestScore}%
+          </div>
+          <p className="text-[11px] font-medium text-[#0F3D2E]/70 mt-1">Personal best accuracy</p>
+        </div>
 
-        <Card className="border shadow-xs">
-          <CardContent className="p-4 sm:p-5 flex flex-col justify-between">
-            <div className="flex items-center justify-between text-muted-foreground mb-2">
-              <span className="text-xs font-medium">Time Invested</span>
-              <Clock className="h-4 w-4 text-primary" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-black">{totalMinutes}m</div>
-            <p className="text-[11px] text-muted-foreground mt-1">Total solving duration</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-[14px] border-[2.5px] border-[#0F3D2E] bg-[#FFFDF5] p-4 sm:p-5 shadow-[5px_5px_0_#0F3D2E] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#0F3D2E] mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider">Time Invested</span>
+            <Clock className="h-4 w-4 text-[#0F3D2E]" />
+          </div>
+          <div className="text-2xl sm:text-3xl font-[family-name:var(--font-mono)] font-bold text-[#0F3D2E]">
+            {totalMinutes}m
+          </div>
+          <p className="text-[11px] font-medium text-[#0F3D2E]/60 mt-1">Total solving duration</p>
+        </div>
       </div>
 
       {/* Attempt History Section */}
-      <Card className="border shadow-sm">
-        <CardHeader className="p-4 sm:p-6 pb-4">
+      <div className="rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] shadow-[9px_9px_0_#0F3D2E] overflow-hidden">
+        <div className="p-5 sm:p-6 pb-4 border-b-2 border-[#0F3D2E]">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl">Attempt History</CardTitle>
-              <CardDescription className="text-xs">
+              <h2 className="text-xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E]">
+                Attempt History
+              </h2>
+              <p className="text-xs font-medium text-[#0F3D2E]/70">
                 Your past quiz attempts, accuracy scores, and completion records.
-              </CardDescription>
+              </p>
             </div>
 
             {history.length > 0 && (
@@ -234,25 +241,25 @@ export function ProfileView() {
                 variant="ghost"
                 size="sm"
                 onClick={clearHistory}
-                className="text-xs text-muted-foreground hover:text-destructive gap-1.5"
+                className="text-xs font-bold text-[#E5484D] hover:bg-[#E5484D]/10 gap-1.5 rounded-[8px]"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Clear History
               </Button>
             )}
           </div>
-        </CardHeader>
+        </div>
 
-        <CardContent className="p-0">
+        <div className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead>Quiz</TableHead>
-                <TableHead className="text-center">Score</TableHead>
-                <TableHead className="text-center">Accuracy</TableHead>
-                <TableHead className="text-center">Duration</TableHead>
-                <TableHead className="text-center hidden sm:table-cell">Date</TableHead>
-                <TableHead className="text-right pr-6">Action</TableHead>
+              <TableRow className="border-b-2 border-[#0F3D2E] bg-[#E3F9EE] hover:bg-[#E3F9EE]">
+                <TableHead className="font-extrabold text-[#0F3D2E] text-xs">Quiz</TableHead>
+                <TableHead className="text-center font-extrabold text-[#0F3D2E] text-xs">Score</TableHead>
+                <TableHead className="text-center font-extrabold text-[#0F3D2E] text-xs">Accuracy</TableHead>
+                <TableHead className="text-center font-extrabold text-[#0F3D2E] text-xs">Duration</TableHead>
+                <TableHead className="text-center font-extrabold text-[#0F3D2E] text-xs hidden sm:table-cell">Date</TableHead>
+                <TableHead className="text-right pr-6 font-extrabold text-[#0F3D2E] text-xs">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -260,45 +267,47 @@ export function ProfileView() {
                 const percentage = Math.round((record.score / record.totalQuestions) * 100);
 
                 return (
-                  <TableRow key={record.id} className="transition-colors hover:bg-muted/40">
+                  <TableRow key={record.id} className="transition-colors hover:bg-[#E3F9EE]/40 border-b border-[#0F3D2E]/20">
                     <TableCell>
-                      <div className="font-semibold text-sm">{record.quizTitle}</div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
+                      <div className="font-bold text-sm text-[#0F3D2E]">{record.quizTitle}</div>
+                      <div className="text-xs text-[#0F3D2E]/70 font-medium flex items-center gap-2 mt-0.5">
                         <span className="capitalize">{record.timerMode || "Quiz"} Timer</span>
                         <span className="sm:hidden">&bull; {formatDate(record.completedAt)}</span>
                       </div>
                     </TableCell>
 
-                    <TableCell className="text-center font-bold text-sm">
+                    <TableCell className="text-center font-extrabold text-sm text-[#0F3D2E]">
                       {record.score} / {record.totalQuestions}
                     </TableCell>
 
                     <TableCell className="text-center">
-                      <Badge
-                        variant="secondary"
-                        className={`text-xs ${
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold border border-[#0F3D2E] ${
                           percentage >= 80
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                            ? "bg-[#E3F9EE] text-[#0F3D2E]"
                             : percentage >= 50
-                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                            : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                            ? "bg-[#FFE94A] text-[#0F3D2E]"
+                            : "bg-[#E5484D]/15 text-[#E5484D] border-[#E5484D]"
                         }`}
                       >
                         {percentage}%
-                      </Badge>
+                      </span>
                     </TableCell>
 
-                    <TableCell className="text-center font-mono text-xs text-muted-foreground">
+                    <TableCell className="text-center font-[family-name:var(--font-mono)] text-xs font-bold text-[#0F3D2E]">
                       {formatDuration(record.timeTaken)}
                     </TableCell>
 
-                    <TableCell className="text-center text-xs text-muted-foreground hidden sm:table-cell">
+                    <TableCell className="text-center text-xs font-medium text-[#0F3D2E]/70 hidden sm:table-cell">
                       {formatDate(record.completedAt)}
                     </TableCell>
 
                     <TableCell className="text-right pr-6">
                       <Link href={`/quizzes/${record.quizId}/result`}>
-                        <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs">
+                        <Button
+                          size="sm"
+                          className="h-8 gap-1 text-xs bg-[#FFE94A] hover:bg-[#FFE94A]/90 text-[#0F3D2E] font-bold border border-[#0F3D2E] rounded-[6px] shadow-[2px_2px_0_#0F3D2E]"
+                        >
                           Review
                           <ArrowRight className="h-3.5 w-3.5" />
                         </Button>
@@ -310,15 +319,17 @@ export function ProfileView() {
 
               {history.length === 0 && mounted && (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="h-32 text-center text-[#0F3D2E]">
                     <div className="flex flex-col items-center justify-center gap-2 py-4">
-                      <Trophy className="h-8 w-8 text-muted-foreground/40" />
-                      <p className="font-medium text-foreground">No quiz attempts yet</p>
-                      <p className="text-xs text-muted-foreground max-w-sm">
+                      <Trophy className="h-8 w-8 text-[#0F3D2E]/40" />
+                      <p className="font-bold text-[#0F3D2E]">No quiz attempts yet</p>
+                      <p className="text-xs text-[#0F3D2E]/70 max-w-sm">
                         Take your first quiz to begin tracking your scores, accuracy, and study history.
                       </p>
                       <Link href="/quizzes" className="mt-2">
-                        <Button size="sm">Browse Quizzes</Button>
+                        <Button size="sm" className="bg-[#FFE94A] hover:bg-[#FFE94A]/90 text-[#0F3D2E] font-extrabold border-2 border-[#0F3D2E] rounded-[8px] shadow-[2px_2px_0_#0F3D2E]">
+                          Browse Quizzes
+                        </Button>
                       </Link>
                     </div>
                   </TableCell>
@@ -326,8 +337,8 @@ export function ProfileView() {
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
