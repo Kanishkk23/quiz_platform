@@ -1,61 +1,177 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { User, AuthState } from "@/types";
-import { mockUsers } from "@/data/mock";
+import { createClient } from "@/lib/client";
 
-interface AuthContextType extends AuthState {
-  login: (email: string) => Promise<boolean>;
-  logout: () => void;
-  register: (name: string, email: string) => Promise<boolean>;
+export interface AuthResult {
+  success: boolean;
+  error?: string | null;
+  requiresEmailVerification?: boolean;
+  userAlreadyExists?: boolean;
+}
+
+export interface AuthContextType extends AuthState {
+  isLoading: boolean;
+  login: (email: string, password?: string) => Promise<AuthResult>;
+  logout: () => Promise<void>;
+  register: (name: string, email: string, password?: string) => Promise<AuthResult>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function mapSupabaseUser(supabaseUser: {
+  id: string;
+  email?: string;
+  user_metadata?: { full_name?: string; name?: string; avatar_url?: string };
+}): User {
+  return {
+    id: supabaseUser.id,
+    name:
+      supabaseUser.user_metadata?.full_name ||
+      supabaseUser.user_metadata?.name ||
+      supabaseUser.email?.split("@")[0] ||
+      "User",
+    email: supabaseUser.email || "",
+    avatarUrl: supabaseUser.user_metadata?.avatar_url || "",
+  };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const supabase = useMemo(() => createClient(), []);
 
-  // Check localStorage on mount for simulated persistence
   useEffect(() => {
-    const savedUser = localStorage.getItem("quiz_platform_user");
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch {
-        localStorage.removeItem("quiz_platform_user");
+    let mounted = true;
+
+    // Get current session
+    supabase.auth
+      .getSession()
+      .then(({ data: { session }, error }) => {
+        if (!mounted) return;
+        if (session?.user && !error) {
+          setUser(mapSupabaseUser(session.user));
+        } else {
+          setUser(null);
+        }
+        setIsLoading(false);
+      })
+      .catch(() => {
+        if (mounted) setIsLoading(false);
+      });
+
+    // Listen to real-time auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      if (session?.user) {
+        setUser(mapSupabaseUser(session.user));
+      } else {
+        setUser(null);
       }
+      setIsLoading(false);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  const login = async (email: string, password?: string): Promise<AuthResult> => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password || "",
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        setUser(mapSupabaseUser(data.user));
+      }
+
+      return { success: true };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to sign in";
+      return { success: false, error: message };
     }
-  }, []);
-
-  const login = async (email: string): Promise<boolean> => {
-    // Find in mock users or create session for this email
-    const existing = mockUsers.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    const currentUser: User = existing || {
-      id: "u_" + Date.now(),
-      name: email.split("@")[0],
-      email: email,
-    };
-
-    setUser(currentUser);
-    localStorage.setItem("quiz_platform_user", JSON.stringify(currentUser));
-    return true;
   };
 
-  const register = async (name: string, email: string): Promise<boolean> => {
-    const newUser: User = {
-      id: "u_" + Date.now(),
-      name,
-      email,
-    };
+  const register = async (
+    name: string,
+    email: string,
+    password?: string
+  ): Promise<AuthResult> => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password || "",
+        options: {
+          data: {
+            full_name: name.trim(),
+            name: name.trim(),
+          },
+        },
+      });
 
-    setUser(newUser);
-    localStorage.setItem("quiz_platform_user", JSON.stringify(newUser));
-    return true;
+      if (error) {
+        const isAlreadyRegistered =
+          error.message?.toLowerCase().includes("already registered") ||
+          error.message?.toLowerCase().includes("already exists") ||
+          error.message?.toLowerCase().includes("user already") ||
+          error.status === 422;
+
+        return {
+          success: false,
+          error: isAlreadyRegistered
+            ? "User already exists with this email. Redirecting to login..."
+            : error.message,
+          userAlreadyExists: isAlreadyRegistered,
+        };
+      }
+
+      // Check for Supabase email enumeration protection:
+      // When enabled, Supabase returns data.user with identities: [] if user already exists
+      if (
+        data.user &&
+        Array.isArray(data.user.identities) &&
+        data.user.identities.length === 0
+      ) {
+        return {
+          success: false,
+          error: "User already exists with this email. Redirecting to login...",
+          userAlreadyExists: true,
+        };
+      }
+
+      if (data.user) {
+        setUser(mapSupabaseUser(data.user));
+      }
+
+      const requiresEmailVerification = !data.session;
+      return { success: true, requiresEmailVerification };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to create account";
+      return { success: false, error: message };
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("quiz_platform_user");
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // ignore
+    } finally {
+      setUser(null);
+      try {
+        localStorage.removeItem("quiz_platform_user");
+      } catch {}
+    }
   };
 
   return (
@@ -63,6 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         isAuthenticated: !!user,
+        isLoading,
         login,
         logout,
         register,
