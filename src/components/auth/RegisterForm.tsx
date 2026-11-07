@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle2, Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { QuizoraLogo } from "@/components/layout/QuizoraLogo";
 
@@ -33,6 +33,9 @@ export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [userAlreadyExists, setUserAlreadyExists] = useState(false);
+  const [verificationNotice, setVerificationNotice] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [formData, setFormData] = useState({
     name: "",
@@ -72,24 +75,58 @@ export function RegisterForm() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const loginHref = redirectParam
+    ? `/login?redirect=${encodeURIComponent(redirectParam)}&email=${encodeURIComponent(formData.email.trim())}`
+    : `/login?email=${encodeURIComponent(formData.email.trim())}`;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setServerError(null);
+    setUserAlreadyExists(false);
+    setVerificationNotice(null);
     if (!validate()) return;
 
     setIsLoading(true);
 
-    // Mock registration — simulates network call
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    await register(formData.name.trim(), formData.email.trim());
+    const result = await register(
+      formData.name.trim(),
+      formData.email.trim(),
+      formData.password
+    );
+
+    if (!result.success) {
+      setIsLoading(false);
+
+      if (result.userAlreadyExists) {
+        setUserAlreadyExists(true);
+        setServerError(
+          "An account with this email already exists! Redirecting you to login..."
+        );
+        // Automatically redirect to login page after 2 seconds
+        setTimeout(() => {
+          router.push(loginHref);
+        }, 2000);
+        return;
+      }
+
+      setServerError(
+        result.error || "Failed to create account. Please try again."
+      );
+      return;
+    }
 
     setIsLoading(false);
+
+    if (result.requiresEmailVerification) {
+      setVerificationNotice(
+        "Account created! Please check your email to verify your address, then sign in."
+      );
+      return;
+    }
+
     const targetUrl = redirectParam || "/quizzes";
     router.push(targetUrl);
   };
-
-  const loginHref = redirectParam
-    ? `/login?redirect=${encodeURIComponent(redirectParam)}`
-    : "/login";
 
   return (
     <Card className="w-full max-w-md bg-[#FFFDF5] border-[3px] border-[#0F3D2E] rounded-[18px] shadow-[9px_9px_0_#0F3D2E] text-[#0F3D2E]">
@@ -112,11 +149,41 @@ export function RegisterForm() {
             </span>
           </div>
         )}
+
+        {serverError && (
+          <div className="mt-3 flex flex-col gap-2 rounded-[10px] border-2 border-[#0F3D2E] bg-[#E5484D]/15 p-3 text-xs font-bold text-[#E5484D] text-left shadow-[3px_3px_0_#0F3D2E]">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0 text-[#E5484D] mt-0.5" />
+              <span>{serverError}</span>
+            </div>
+            {userAlreadyExists && (
+              <Link href={loginHref} className="pt-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="w-full bg-[#FFE94A] hover:bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] font-bold rounded-[8px] shadow-[2px_2px_0_#0F3D2E] text-xs h-8 gap-1.5"
+                >
+                  Go to Login Now <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
+            )}
+          </div>
+        )}
+
+        {verificationNotice && (
+          <div className="mt-3 flex items-start gap-2 rounded-[10px] border-2 border-[#0F3D2E] bg-[#E3F9EE] p-3 text-xs font-bold text-[#0F3D2E] text-left shadow-[3px_3px_0_#0F3D2E]">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-[#0F3D2E] mt-0.5" />
+            <span>{verificationNotice}</span>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="font-bold text-xs uppercase tracking-wider text-[#0F3D2E]">
+            <Label
+              htmlFor="name"
+              className="font-bold text-xs uppercase tracking-wider text-[#0F3D2E]"
+            >
               Full Name
             </Label>
             <Input
@@ -137,7 +204,10 @@ export function RegisterForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="font-bold text-xs uppercase tracking-wider text-[#0F3D2E]">
+            <Label
+              htmlFor="email"
+              className="font-bold text-xs uppercase tracking-wider text-[#0F3D2E]"
+            >
               Email
             </Label>
             <Input
@@ -158,7 +228,10 @@ export function RegisterForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="font-bold text-xs uppercase tracking-wider text-[#0F3D2E]">
+            <Label
+              htmlFor="password"
+              className="font-bold text-xs uppercase tracking-wider text-[#0F3D2E]"
+            >
               Password
             </Label>
             <div className="relative">
@@ -192,7 +265,10 @@ export function RegisterForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="font-bold text-xs uppercase tracking-wider text-[#0F3D2E]">
+            <Label
+              htmlFor="confirmPassword"
+              className="font-bold text-xs uppercase tracking-wider text-[#0F3D2E]"
+            >
               Confirm Password
             </Label>
             <div className="relative">

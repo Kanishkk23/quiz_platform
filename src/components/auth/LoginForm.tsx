@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { QuizoraLogo } from "@/components/layout/QuizoraLogo";
 
@@ -21,15 +21,17 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get("redirect");
+  const emailParam = searchParams.get("email") || "";
 
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
     {}
   );
   const [formData, setFormData] = useState({
-    email: "",
+    email: emailParam,
     password: "",
   });
 
@@ -54,13 +56,20 @@ export function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setServerError(null);
     if (!validate()) return;
 
     setIsLoading(true);
 
-    // Mock login — simulates network request
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    await login(formData.email);
+    const result = await login(formData.email, formData.password);
+
+    if (!result.success) {
+      setIsLoading(false);
+      setServerError(
+        result.error || "Failed to sign in. Please check your credentials."
+      );
+      return;
+    }
 
     setIsLoading(false);
     const targetUrl = redirectParam || "/quizzes";
@@ -92,11 +101,21 @@ export function LoginForm() {
             </span>
           </div>
         )}
+
+        {serverError && (
+          <div className="mt-3 flex items-start gap-2 rounded-[10px] border-2 border-[#0F3D2E] bg-[#E5484D]/15 p-3 text-xs font-bold text-[#E5484D] text-left shadow-[3px_3px_0_#0F3D2E]">
+            <AlertCircle className="h-4 w-4 shrink-0 text-[#E5484D] mt-0.5" />
+            <span>{serverError}</span>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="font-bold text-xs uppercase tracking-wider text-[#0F3D2E]">
+            <Label
+              htmlFor="email"
+              className="font-bold text-xs uppercase tracking-wider text-[#0F3D2E]"
+            >
               Email
             </Label>
             <Input
@@ -118,12 +137,12 @@ export function LoginForm() {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password" className="font-bold text-xs uppercase tracking-wider text-[#0F3D2E]">
+              <Label
+                htmlFor="password"
+                className="font-bold text-xs uppercase tracking-wider text-[#0F3D2E]"
+              >
                 Password
               </Label>
-              <span className="text-xs font-bold text-[#0F3D2E]/70 hover:underline cursor-pointer">
-                Forgot password?
-              </span>
             </div>
             <div className="relative">
               <Input
