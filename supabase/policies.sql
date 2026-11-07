@@ -455,7 +455,7 @@ RETURNS TABLE (
   option_id uuid,
   option_text text,
   is_correct boolean,
-  position integer
+  option_position integer
 )
 LANGUAGE sql
 STABLE
