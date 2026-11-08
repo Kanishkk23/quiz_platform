@@ -1,74 +1,153 @@
-# Quiz Platform
+# Quizora-B
 
-An interactive quiz platform built with **Next.js**, **Tailwind CSS**, and **shadcn/ui**.
+Quizora-B is an interactive quiz platform where users can discover quizzes,
+attempt them, review their results, and compete on live leaderboards.
 
 ## Features
 
-- 🔐 User registration, login, and logout
-- 📝 Quiz listing and quiz attempt screen
-- ✅ Answer submission and score calculation
-- 🏆 Live leaderboard with real-time updates
-- 📱 Responsive layout usable on desktop and mobile
+### User experience
 
-## Tech Stack
+- User registration, login, logout, and Supabase Auth sessions
+- Supabase authentication callback and confirmation routes
+- Branded landing page with an intro experience and animated quiz visuals
+- Quiz listing with search, category filtering, and difficulty labels
+- Quiz information and instructions before starting
+- Timed quiz attempts with progress tracking and countdown timer
+- Answer selection, submission, and unanswered-question handling
+- Results view with score, answer review, and explanations
+- Per-quiz leaderboards with score and completion-time tie-breaks
+- Profile page with user information and quiz performance
+- Responsive navigation, footer, and mobile-friendly layouts
 
-- **Frontend**: Next.js (App Router) with TypeScript
-- **Styling**: Tailwind CSS + shadcn/ui
-- **Backend**: Supabase (authentication, database)
-- **Containerization**: Docker
-- **CI/CD**: GitHub Actions
-- **Hosting**: AWS EC2
+### Database foundation
 
-## Getting Started
+- Supabase Auth-backed user profiles with role support
+- Quiz catalogue with publication state and availability windows
+- Questions and ordered answer options
+- Private attempts and saved answers
+- Submitted scores for leaderboard rankings
+- Database constraints, indexes, triggers, and Supabase Realtime setup
+- Row-level security for profile, quiz, question, attempt, answer, and score data
+- Answer-key protection while a quiz is in progress
+- Development fixtures for upcoming, live, and finished quizzes
+
+## Tech stack
+
+- **Frontend:** Next.js App Router, React, TypeScript, Tailwind CSS, shadcn/ui
+- **Authentication and database:** Supabase
+- **Development:** Node.js and npm
+
+## Getting started
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18 or newer
 - npm
+- A Supabase project for local development
 
 ### Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/Kanishkk23/quiz_platform.git
+git clone https://github.com/RCOEM-Google-DSC/Quizora-B.git
+cd Quizora-B
+npm ci
+```
 
-# Navigate to the project
-cd quiz_platform
+Create a `.env.local` file from `.env.example` and add your Supabase project
+URL and public browser key:
 
-# Install dependencies
-npm install
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR-PROJECT-REF.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-or-publishable-key
+```
 
-# Start the development server
+Never expose a Supabase service-role or secret key through a
+`NEXT_PUBLIC_` variable or commit it to the repository.
+
+Start the development server:
+
+```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the app.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Project Structure
+## Supabase database setup
 
-```
+The SQL scripts in `supabase/` are intended for a development or test project.
+Run them in the Supabase SQL Editor in this order:
+
+1. `schema.sql` — tables, constraints, triggers, indexes, and Realtime setup
+2. `policies.sql` — row-level security, grants, and answer-key protection
+3. `seed.sql` — repeatable development fixtures
+
+The seed script creates upcoming, live, and finished quiz examples. Read
+[`supabase/README.md`](./supabase/README.md) for the seed details and acceptance
+checks.
+
+## Project structure
+
+```text
 src/
-├── app/                  # App Router pages
-│   ├── layout.tsx        # Root layout (Navbar + Footer)
-│   ├── page.tsx          # Home / Landing page
-│   ├── login/            # Login page
-│   ├── register/         # Registration page
-│   ├── quizzes/          # Quiz listing + attempt + results
-│   └── leaderboard/      # Leaderboard page
+├── app/
+│   ├── auth/
+│   │   ├── callback/     # Authentication callback route
+│   │   └── confirm/      # Email confirmation route
+│   ├── leaderboard/
+│   │   └── page.tsx      # Leaderboard page
+│   ├── login/
+│   │   └── page.tsx      # Login page
+│   ├── profile/
+│   │   └── page.tsx      # Profile page
+│   ├── quizzes/
+│   │   ├── [id]/
+│   │   │   ├── result/
+│   │   │   │   └── page.tsx  # Quiz result page
+│   │   │   └── page.tsx      # Quiz attempt page
+│   │   └── page.tsx      # Quiz listing page
+│   ├── register/
+│   │   └── page.tsx      # Registration page
+│   ├── globals.css       # Global styles
+│   ├── layout.tsx        # Root layout
+│   └── page.tsx          # Home / landing page
 ├── components/
-│   ├── ui/               # shadcn/ui components
-│   └── layout/           # Navbar, Footer
-├── data/
-│   └── mock.ts           # Mock data for development
-├── types/
-│   └── index.ts          # TypeScript interfaces
-└── lib/
-    └── utils.ts          # Utility functions
+│   ├── auth/             # Login and registration forms
+│   ├── home/             # Home page components
+│   ├── intro/            # Intro animations and entry experience
+│   ├── landing/          # Landing page sections and visuals
+│   ├── layout/           # Navbar, footer, and branding
+│   ├── leaderboard/      # Leaderboard view
+│   ├── profile/          # Profile view
+│   ├── quiz/             # Quiz cards, attempts, timers, and results
+│   └── ui/               # Reusable interface components
+├── context/              # Client-side application state
+├── data/                 # Development mock data
+├── lib/                  # Supabase clients, middleware, and utilities
+└── types/                # Shared TypeScript types
+
+supabase/
+├── schema.sql            # Core database schema
+├── policies.sql          # RLS policies and grants
+├── seed.sql              # Development fixtures
+└── README.md             # Database setup and acceptance checks
+```
+
+## Useful commands
+
+```bash
+npm run dev       # Start the development server
+npm run lint      # Run ESLint
+npm run build     # Create a production build
 ```
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`feature/your-feature-name`)
-3. Commit using [Conventional Commits](https://www.conventionalcommits.org/)
-4. Push and create a Pull Request
+1. Sync your local `main` branch with `upstream/main`.
+2. Create a focused feature or documentation branch.
+3. Make one logical change per branch and commit using
+   [Conventional Commits](https://www.conventionalcommits.org/).
+4. Push the branch to your fork.
+5. Open a pull request against `RCOEM-Google-DSC/Quizora-B:main`.
+
+Keep database schema, policies, seed data, and documentation changes focused so
+they can be reviewed and merged independently.
