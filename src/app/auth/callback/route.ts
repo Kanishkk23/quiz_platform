@@ -9,13 +9,20 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get('type') as EmailOtpType | null
   const next = searchParams.get('next') ?? '/quizzes'
 
+  const forwardedHost = request.headers.get('x-forwarded-host')
+  const isLocalEnv = process.env.NODE_ENV === 'development'
+  const redirectUrl =
+    isLocalEnv || !forwardedHost
+      ? `${origin}${next}`
+      : `https://${forwardedHost}${next}`
+
   const supabase = await createClient()
 
-  // 1. Handle code exchange (PKCE)
+  // 1. Handle code exchange (PKCE / OAuth)
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      return NextResponse.redirect(redirectUrl)
     }
   }
 
@@ -26,7 +33,7 @@ export async function GET(request: NextRequest) {
       token_hash,
     })
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      return NextResponse.redirect(redirectUrl)
     }
   }
 

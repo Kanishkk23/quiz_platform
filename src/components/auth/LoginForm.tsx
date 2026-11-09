@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { AlertCircle, Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { QuizoraLogo } from "@/components/layout/QuizoraLogo";
+import { OAuthButtons } from "@/components/auth/OAuthButtons";
 
 export function LoginForm() {
   const router = useRouter();
@@ -143,6 +144,12 @@ export function LoginForm() {
               >
                 Password
               </Label>
+              <Link
+                href="/forgot-password"
+                className="text-xs font-bold text-[#0F3D2E]/70 hover:underline hover:text-[#0F3D2E] transition-colors"
+              >
+                Forgot password?
+              </Link>
             </div>
             <div className="relative">
               <Input
@@ -189,6 +196,11 @@ export function LoginForm() {
             )}
           </Button>
         </form>
+
+        <OAuthButtons
+          redirectParam={redirectParam}
+          onError={(err) => setServerError(err)}
+        />
 
         <div className="mt-6 text-center text-sm font-semibold text-[#0F3D2E]/80">
           Don&apos;t have an account?{" "}
