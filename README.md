@@ -8,7 +8,9 @@ attempt them, review their results, and compete on live leaderboards.
 ### User experience
 
 - User registration, login, logout, and Supabase Auth sessions
-- Supabase authentication callback and confirmation routes
+- Google and GitHub OAuth sign-in
+- Email confirmation and Supabase authentication callback routes
+- Forgot-password and reset-password flows
 - Branded landing page with an intro experience and animated quiz visuals
 - Quiz listing with search, category filtering, and difficulty labels
 - Quiz information and instructions before starting
@@ -93,6 +95,8 @@ src/
 │   ├── auth/
 │   │   ├── callback/     # Authentication callback route
 │   │   └── confirm/      # Email confirmation route
+│   ├── forgot-password/
+│   │   └── page.tsx      # Password recovery page
 │   ├── leaderboard/
 │   │   └── page.tsx      # Leaderboard page
 │   ├── login/
@@ -107,11 +111,13 @@ src/
 │   │   └── page.tsx      # Quiz listing page
 │   ├── register/
 │   │   └── page.tsx      # Registration page
+│   ├── reset-password/
+│   │   └── page.tsx      # Password reset page
 │   ├── globals.css       # Global styles
 │   ├── layout.tsx        # Root layout
 │   └── page.tsx          # Home / landing page
 ├── components/
-│   ├── auth/             # Login and registration forms
+│   ├── auth/             # Login, registration, OAuth, and password forms
 │   ├── home/             # Home page components
 │   ├── intro/            # Intro animations and entry experience
 │   ├── landing/          # Landing page sections and visuals
