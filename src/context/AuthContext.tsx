@@ -16,6 +16,9 @@ export interface AuthContextType extends AuthState {
   login: (email: string, password?: string) => Promise<AuthResult>;
   logout: () => Promise<void>;
   register: (name: string, email: string, password?: string) => Promise<AuthResult>;
+  resetPassword: (email: string) => Promise<AuthResult>;
+  updatePassword: (password: string) => Promise<AuthResult>;
+  signInWithOAuth: (provider: "google" | "github", redirectToPath?: string) => Promise<AuthResult>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -161,6 +164,79 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const resetPassword = async (email: string): Promise<AuthResult> => {
+    try {
+      const redirectTo =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/auth/callback?next=/reset-password`
+          : undefined;
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo,
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to send password reset email";
+      return { success: false, error: message };
+    }
+  };
+
+  const updatePassword = async (password: string): Promise<AuthResult> => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: password,
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to update password";
+      return { success: false, error: message };
+    }
+  };
+
+  const signInWithOAuth = async (
+    provider: "google" | "github",
+    redirectToPath?: string
+  ): Promise<AuthResult> => {
+    try {
+      const nextParam = redirectToPath
+        ? `?next=${encodeURIComponent(redirectToPath)}`
+        : "";
+      const redirectTo =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/auth/callback${nextParam}`
+          : undefined;
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo,
+        },
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : `Failed to sign in with ${provider}`;
+      return { success: false, error: message };
+    }
+  };
+
   const logout = async () => {
     try {
       await supabase.auth.signOut();
@@ -183,6 +259,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         register,
+        resetPassword,
+        updatePassword,
+        signInWithOAuth,
       }}
     >
       {children}
