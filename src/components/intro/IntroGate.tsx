@@ -32,34 +32,35 @@ export default function IntroGate({
   logoSrc,
   children,
 }: Props) {
-  const [phase, setPhase] = useState<Phase>("check");
+  const [phase, setPhase] = useState<Phase>(() => {
+    if (typeof window !== "undefined" && once) {
+      if (hasIntroPlayed) return "done";
+      try {
+        if (sessionStorage.getItem(STORAGE_KEY) === "1") {
+          hasIntroPlayed = true;
+          return "done";
+        }
+      } catch {}
+    }
+    return "check";
+  });
 
+  // Decide whether to play (runs on the client only)
   useEffect(() => {
-    if (!once) {
-      setPhase("play");
-      return;
-    }
-
+    let seen = false;
     try {
-      if (hasIntroPlayed || sessionStorage.getItem(STORAGE_KEY) === "1") {
-        hasIntroPlayed = true;
-        setPhase("done");
-        return;
-      }
+      seen = once && (hasIntroPlayed || sessionStorage.getItem(STORAGE_KEY) === "1");
     } catch {}
-
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (reduce) {
+    if (seen || reduce) {
       setPhase("done");
-      return;
+    } else {
+      hasIntroPlayed = true;
+      try {
+        sessionStorage.setItem(STORAGE_KEY, "1");
+      } catch {}
+      setPhase("play");
     }
-
-    hasIntroPlayed = true;
-    try {
-      sessionStorage.setItem(STORAGE_KEY, "1");
-    } catch {}
-    setPhase("play");
   }, [once]);
 
   // play -> exit -> done

@@ -1,19 +1,14 @@
 "use client";
 
-import {
-  useState,
-  useMemo,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  type CSSProperties,
-} from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { mockLeaderboard as initialLeaderboard, mockQuizzes } from "@/data/mock";
 import { LeaderboardEntry } from "@/types";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Table,
@@ -23,142 +18,37 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trophy, Clock, Search, ArrowRight, Zap, Loader2 } from "lucide-react";
+import {
+  Trophy,
+  Medal,
+  Clock,
+  Search,
+  Radio,
+  Sparkles,
+  ArrowRight,
+  Award,
+  Zap,
+} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { LeaderboardMotionPreview } from "@/components/leaderboard/LeaderboardMotionPreview";
-
-// One style per tower, 1st to 5th
-const TOWER_STYLES = [
-  "bg-[#FFE94A] text-[#0F3D2E]",
-  "bg-[#0F3D2E] text-[#FFFDF5]",
-  "bg-[#FFFDF5] text-[#0F3D2E]",
-  "bg-[#1F9D6B] text-[#FFFDF5]",
-  "bg-[#E3F9EE] text-[#0F3D2E]",
-];
-
-// Confetti pieces fired around the champion
-const CONFETTI = [
-  { x: -70, y: -60, r: 200, c: "bg-[#FFE94A]" },
-  { x: 60, y: -80, r: -160, c: "bg-[#0F3D2E]" },
-  { x: -110, y: -20, r: 120, c: "bg-[#1F9D6B]" },
-  { x: 100, y: -30, r: -220, c: "bg-[#FFFDF5] border border-[#0F3D2E]" },
-  { x: -30, y: -110, r: 300, c: "bg-[#0F3D2E]" },
-  { x: 30, y: -120, r: -90, c: "bg-[#FFE94A]" },
-  { x: -90, y: -90, r: 60, c: "bg-[#FFFDF5] border border-[#0F3D2E]" },
-  { x: 90, y: -100, r: 180, c: "bg-[#1F9D6B]" },
-];
-
-const entryKey = (e: LeaderboardEntry) => `${e.userId}_${e.timeTaken}`;
-
-function isStoredEntryForQuiz(entry: unknown, quizId: string): entry is LeaderboardEntry {
-  if (typeof entry !== "object" || entry === null) return false;
-  const value = entry as Record<string, unknown>;
-
-  return (
-    typeof value.userId === "string" &&
-    typeof value.userName === "string" &&
-    value.quizId === quizId &&
-    typeof value.score === "number" &&
-    typeof value.totalQuestions === "number" &&
-    typeof value.timeTaken === "number" &&
-    typeof value.completedAt === "string"
-  );
-}
-
-const formatTime = (seconds: number) => {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}m ${s < 10 ? "0" : ""}${s}s`;
-};
-
-/** Counts a number up smoothly whenever it changes. */
-function CountUp({ value }: { value: number }) {
-  const [shown, setShown] = useState(0);
-  const from = useRef(0);
-
-  useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const start = performance.now();
-    const origin = from.current;
-    const duration = reduce ? 0 : 700;
-    let raf = 0;
-
-    const tick = (now: number) => {
-      const p = duration === 0 ? 1 : Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setShown(Math.round(origin + (value - origin) * eased));
-      if (p < 1) {
-        raf = requestAnimationFrame(tick);
-      } else {
-        from.current = value;
-      }
-    };
-
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [value]);
-
-  return <>{shown}</>;
-}
-
-/** Loader shown while standings load: pulsing dashed capsules. */
-function BoardSkeleton() {
-  const heights = [300, 380, 240, 200, 160];
-  return (
-    <div role="status" aria-live="polite" className="mb-10">
-      <ol className="flex items-end gap-2 sm:gap-4">
-        {heights.map((h, i) => (
-          <li key={i} className="flex min-w-0 flex-1 flex-col items-center justify-end">
-            <div
-              className="w-full animate-pulse rounded-t-full border-[3px] border-b-0 border-dashed border-[#0F3D2E]/60 bg-[#0F3D2E]/10"
-              style={{ height: h, animationDelay: `${i * 120}ms` }}
-            />
-            <div className="w-full border-t-[3px] border-[#0F3D2E] pt-2">
-              <div className="mx-auto h-5 w-2/3 animate-pulse rounded bg-[#0F3D2E]/15" />
-            </div>
-          </li>
-        ))}
-      </ol>
-      <p className="mt-5 flex items-center gap-2 font-[family-name:var(--font-hand)] text-2xl text-[#0F3D2E]">
-        <Loader2 className="h-5 w-5 animate-spin" />
-        counting the points…
-      </p>
-      <span className="sr-only">Loading standings</span>
-    </div>
-  );
-}
 
 export function LeaderboardView() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const urlQuizId = searchParams.get("quizId");
-  const selectedQuizId = urlQuizId || mockQuizzes[0]?.id || "1";
+  const defaultQuizId = urlQuizId || mockQuizzes[0]?.id || "1";
 
+  const [selectedQuizId, setSelectedQuizId] = useState<string>(defaultQuizId);
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [storedEntries, setStoredEntries] = useState<{
-    quizId: string;
-    entries: LeaderboardEntry[];
-  }>({ quizId: selectedQuizId, entries: [] });
+  const [isLiveActive, setIsLiveActive] = useState(true);
 
-  const loadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const itemRefs = useRef(new Map<string, HTMLLIElement>());
-  const lastLeft = useRef(new Map<string, number>());
-
-  // First load: show the loader briefly
+  // Update selectedQuizId if URL changes
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 900);
-    return () => clearTimeout(t);
-  }, []);
-
-  useEffect(
-    () => () => {
-      if (loadTimer.current) clearTimeout(loadTimer.current);
-    },
-    []
-  );
+    if (urlQuizId && urlQuizId !== selectedQuizId) {
+      setSelectedQuizId(urlQuizId);
+    }
+  }, [urlQuizId, selectedQuizId]);
 
   const selectedQuiz = useMemo(() => {
     return (
@@ -176,48 +66,28 @@ export function LeaderboardView() {
     );
   }, [selectedQuizId]);
 
-  useEffect(() => {
-    let entries: LeaderboardEntry[] = [];
+  // Load static mock entries for this quiz + any attempts saved in localStorage
+  const currentQuizEntries = useMemo(() => {
+    // 1. Initial mock entries matching this quiz
+    const baseEntries = initialLeaderboard.filter(
+      (entry) => entry.quizId === selectedQuizId
+    );
 
+    // 2. Custom local storage entries completed on this device
+    let customEntries: LeaderboardEntry[] = [];
     try {
-      const customStr = window.localStorage.getItem(
-        `quiz_leaderboard_custom_${selectedQuizId}`
-      );
+      const customStr = localStorage.getItem(`quiz_leaderboard_custom_${selectedQuizId}`);
       if (customStr) {
-        const parsed: unknown = JSON.parse(customStr);
-        if (!Array.isArray(parsed)) {
-          console.error("Stored leaderboard data must be an array.");
-        } else {
-          entries = parsed.filter((entry) =>
-            isStoredEntryForQuiz(entry, selectedQuizId)
-          );
-          if (entries.length !== parsed.length) {
-            console.error("Invalid stored leaderboard entries were ignored.");
-          }
-        }
+        customEntries = JSON.parse(customStr);
       }
-    } catch (error) {
-      console.error("Could not load saved leaderboard entries.", error);
+    } catch {
+      // ignore
     }
 
-    let active = true;
-    queueMicrotask(() => {
-      if (active) setStoredEntries({ quizId: selectedQuizId, entries });
-    });
+    // Combine and deduplicate
+    const combined = [...baseEntries, ...customEntries];
 
-    return () => {
-      active = false;
-    };
-  }, [selectedQuizId]);
-
-  // Combine mock leaderboard entries with attempts saved on this device.
-  const currentQuizEntries = useMemo(() => {
-    const baseEntries = initialLeaderboard.filter((entry) => entry.quizId === selectedQuizId);
-    const quizEntries =
-      storedEntries.quizId === selectedQuizId ? storedEntries.entries : [];
-    const combined = [...baseEntries, ...quizEntries];
-
-    // Sort by score desc, then by timeTaken asc (faster time wins the tiebreaker)
+    // Sort by score desc, then by timeTaken asc (faster time wins tiebreaker)
     combined.sort((a, b) => {
       if (b.score !== a.score) {
         return b.score - a.score;
@@ -225,27 +95,12 @@ export function LeaderboardView() {
       return a.timeTaken - b.timeTaken;
     });
 
-    return combined.map((entry, index) => ({ ...entry, rank: index + 1 }));
-  }, [selectedQuizId, storedEntries]);
-
-  // Towers glide to their new places when the ranking changes
-  useLayoutEffect(() => {
-    if (loading) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const next = new Map<string, number>();
-    itemRefs.current.forEach((el, id) => {
-      const left = el.getBoundingClientRect().left;
-      next.set(id, left);
-      const before = lastLeft.current.get(id);
-      if (!reduce && before !== undefined && Math.abs(before - left) > 1) {
-        el.animate(
-          [{ transform: `translateX(${before - left}px)` }, { transform: "translateX(0)" }],
-          { duration: 650, easing: "cubic-bezier(0.2, 0.9, 0.25, 1.1)" }
-        );
-      }
-    });
-    lastLeft.current = next;
-  });
+    // Re-assign ranks 1..N
+    return combined.map((entry, index) => ({
+      ...entry,
+      rank: index + 1,
+    }));
+  }, [selectedQuizId]);
 
   const filteredLeaderboard = useMemo(() => {
     return currentQuizEntries.filter((entry) =>
@@ -253,21 +108,19 @@ export function LeaderboardView() {
     );
   }, [currentQuizEntries, searchQuery]);
 
-  // Top 5 become capsule towers
-  const towers = currentQuizEntries.slice(0, 5);
-  const topScore = towers[0]?.score ?? 0;
-  const lowScore = towers[towers.length - 1]?.score ?? 0;
-  const towerHeight = (score: number) =>
-    topScore === lowScore ? 300 : 150 + ((score - lowScore) / (topScore - lowScore)) * 250;
+  const topThree = currentQuizEntries.slice(0, 3);
+  const first = topThree[0];
+  const second = topThree[1];
+  const third = topThree[2];
 
-  // The signed-in user is matched by display name until entries carry real user ids
-  const isMe = (name: string) => Boolean(user && user.name === name);
-  const myEntry = currentQuizEntries.find((entry) => isMe(entry.userName));
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}m ${s < 10 ? "0" : ""}${s}s`;
+  };
 
   const handleSelectQuiz = (quizId: string) => {
-    setLoading(true);
-    if (loadTimer.current) clearTimeout(loadTimer.current);
-    loadTimer.current = setTimeout(() => setLoading(false), 800);
+    setSelectedQuizId(quizId);
     router.push(`/leaderboard?quizId=${quizId}`, { scroll: false });
   };
 
@@ -277,196 +130,230 @@ export function LeaderboardView() {
 
   return (
     <div className="container mx-auto max-w-6xl">
-      <LeaderboardMotionPreview />
+      {/* Header with Study Lab Micro-copy */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div>
+          <span className="inline-flex items-center gap-2 rounded-full border-2 border-dashed border-[#0F3D2E] bg-[#FFFDF5] text-[#0F3D2E] px-4 py-1 text-xs font-bold -rotate-1 shadow-[2px_2px_0_#0F3D2E] mb-3">
+            <Radio className="h-3.5 w-3.5 animate-pulse text-[#1F9D6B]" />
+            Per-Quiz Arena Hall of Fame
+          </span>
+          <h1 className="text-3xl font-[family-name:var(--font-display)] font-extrabold tracking-tight sm:text-4xl md:text-5xl text-[#0F3D2E]">
+            Quiz Leaderboards
+          </h1>
+          <p className="text-[#0F3D2E]/80 text-sm sm:text-base mt-1 max-w-2xl font-medium">
+            Each quiz features an independent competitive leaderboard. Rankings are calculated by maximum accuracy and fastest completion time.
+          </p>
+        </div>
 
+        {/* Live sync & Status */}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsLiveActive(!isLiveActive)}
+            className={`gap-2 rounded-[10px] border-2 border-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E] font-bold text-xs ${
+              isLiveActive ? "bg-[#E3F9EE] text-[#0F3D2E]" : "bg-[#FFFDF5] text-[#0F3D2E]/60"
+            }`}
+          >
+            <span
+              className={`h-2 w-2 rounded-full ${
+                isLiveActive ? "bg-[#1F9D6B] animate-ping" : "bg-[#0F3D2E]/40"
+              }`}
+            />
+            {isLiveActive ? "Live Sync Active" : "Paused"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Empty State when no quizzes exist in database yet */}
       {mockQuizzes.length === 0 ? (
         <div className="rounded-[18px] border-[3px] border-dashed border-[#0F3D2E] bg-[#FFFDF5] p-12 text-center text-[#0F3D2E] shadow-[5px_5px_0_#0F3D2E]">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#0F3D2E] bg-[#FFE94A] shadow-[2px_2px_0_#0F3D2E]">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FFE94A] border-2 border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E] mb-4">
             <Trophy className="h-7 w-7 text-[#0F3D2E]" />
           </div>
-          <h2 className="mb-1 font-[family-name:var(--font-display)] text-xl font-extrabold tracking-tight">
+          <h2 className="text-xl font-[family-name:var(--font-display)] font-extrabold tracking-tight mb-1">
             No Leaderboard Data Yet
           </h2>
-          <p className="mx-auto mb-4 max-w-md text-sm font-medium text-[#0F3D2E]/70">
-            The chart above is an animated preview. Real standings will appear here once quizzes
-            and completed attempts are available.
+          <p className="text-sm font-medium text-[#0F3D2E]/70 max-w-md mx-auto mb-4">
+            Leaderboards will automatically activate and rank contenders as soon as quizzes are published from the database.
           </p>
           <Link href="/quizzes">
-            <Button className="rounded-[10px] border-2 border-[#0F3D2E] bg-[#FFE94A] font-extrabold text-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E] hover:bg-[#FFE94A]/90">
+            <Button className="bg-[#FFE94A] hover:bg-[#FFE94A]/90 text-[#0F3D2E] font-extrabold border-2 border-[#0F3D2E] rounded-[10px] shadow-[3px_3px_0_#0F3D2E]">
               Browse Quizzes
             </Button>
           </Link>
         </div>
       ) : (
         <>
-          {/* Quiz switcher */}
-          <div className="mb-6 flex flex-wrap gap-2" role="group" aria-label="Choose a quiz">
-            {mockQuizzes.map((quiz) => {
-              const isSelected = quiz.id === selectedQuizId;
-              return (
-                <button
-                  key={quiz.id}
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => handleSelectQuiz(quiz.id)}
-                  className={`flex items-center gap-2 rounded-full border-[2.5px] border-[#0F3D2E] px-4 py-2 text-xs font-bold transition-all ${
-                    isSelected
-                      ? "bg-[#0F3D2E] text-[#FFE94A] shadow-[3px_3px_0_#FFE94A]"
-                      : "bg-[#FFFDF5] text-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-[#FFE94A]"
-                  }`}
-                >
-                  <span>{quiz.title}</span>
-                  <span className="font-mono text-[10px] uppercase opacity-70">{quiz.difficulty}</span>
-                </button>
-              );
-            })}
+          {/* Quiz Switcher Navigation Pills (One Leaderboard for EVERY Quiz) */}
+          <div className="mb-8 space-y-3">
+            <div className="flex items-center justify-between text-xs font-bold text-[#0F3D2E] px-1">
+              <span className="flex items-center gap-1.5">
+                <Trophy className="h-4 w-4 text-[#0F3D2E]" />
+                Select Quiz Leaderboard:
+              </span>
+              <span>{mockQuizzes.length} Quizzes Available</span>
+            </div>
+
+            <div className="flex flex-wrap gap-2 p-2 rounded-[14px] border-[2.5px] border-[#0F3D2E] bg-[#FFFDF5] shadow-[4px_4px_0_#0F3D2E]">
+              {mockQuizzes.map((quiz) => {
+                const isSelected = quiz.id === selectedQuizId;
+                return (
+                  <button
+                    key={quiz.id}
+                    onClick={() => handleSelectQuiz(quiz.id)}
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-[8px] text-xs font-bold transition-all ${
+                      isSelected
+                        ? "bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]"
+                        : "bg-[#E3F9EE] hover:bg-[#FFFDF5] text-[#0F3D2E]/80 hover:text-[#0F3D2E] border border-[#0F3D2E]/30"
+                    }`}
+                  >
+                    <span>{quiz.title}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full uppercase font-extrabold ${
+                        isSelected
+                          ? "bg-[#0F3D2E] text-white"
+                          : "bg-[#FFFDF5] text-[#0F3D2E]/70 border border-[#0F3D2E]/20"
+                      }`}
+                    >
+                      {quiz.difficulty}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Quiz strip */}
-          <div className="mb-12 flex flex-col gap-4 rounded-[14px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] p-4 shadow-[6px_6px_0_#0F3D2E] sm:flex-row sm:items-center sm:justify-between sm:p-5">
-            <div>
-              <h2 className="font-[family-name:var(--font-display)] text-2xl font-extrabold tracking-tight text-[#0F3D2E]">
-                {selectedQuiz.title}
+          {/* Active Quiz Overview & Call to Action Card */}
+          <div className="mb-10 rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] p-5 sm:p-6 shadow-[9px_9px_0_#0F3D2E] flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs uppercase font-extrabold text-[#0F3D2E] border-2 border-[#0F3D2E] bg-[#FFE94A] px-2.5 py-0.5 rounded-full shadow-[2px_2px_0_#0F3D2E]">
+                  Current Standings
+                </span>
+                <span className="text-xs capitalize font-bold text-[#0F3D2E] bg-[#E3F9EE] border border-[#0F3D2E] px-2 py-0.5 rounded-full">
+                  {selectedQuiz.category}
+                </span>
+                <span className="text-xs text-[#0F3D2E]/70 font-semibold">
+                  • {selectedQuiz.questionCount} Questions
+                </span>
+                <span className="text-xs text-[#0F3D2E]/70 font-semibold">
+                  • {Math.round(selectedQuiz.timeLimit / 60)} min limit
+                </span>
+              </div>
+              <h2 className="text-2xl font-[family-name:var(--font-display)] font-extrabold tracking-tight text-[#0F3D2E]">
+                {selectedQuiz.title} — Hall of Fame
               </h2>
-              <p className="mt-1 font-mono text-[11px] font-bold uppercase text-[#0F3D2E]/70">
-                {selectedQuiz.category} · {selectedQuiz.questionCount} questions ·{" "}
-                {Math.round(selectedQuiz.timeLimit / 60)} min limit
+              <p className="text-xs sm:text-sm text-[#0F3D2E]/80 max-w-xl font-medium">
+                {selectedQuiz.description}
               </p>
             </div>
-            <Link href={attemptQuizHref}>
-              <Button className="w-full gap-2 rounded-[10px] border-2 border-[#0F3D2E] bg-[#FFE94A] font-extrabold text-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E] hover:bg-[#FFE94A]/90 sm:w-auto">
-                <Zap className="h-4 w-4 fill-[#0F3D2E]" />
-                Challenge This Quiz
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+              <Link href={attemptQuizHref}>
+                <Button className="w-full sm:w-auto gap-2 bg-[#FFE94A] hover:bg-[#FFE94A]/90 text-[#0F3D2E] font-extrabold border-2 border-[#0F3D2E] rounded-[10px] shadow-[3px_3px_0_#0F3D2E]">
+                  <Zap className="h-4 w-4 fill-[#0F3D2E]" />
+                  Challenge This Quiz
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
           </div>
 
-          {/* Capsule towers */}
-          {loading ? (
-            <BoardSkeleton />
-          ) : towers.length > 0 ? (
-            <section key={selectedQuizId} aria-label="Top contenders" className="mb-12">
-              <ol className="flex items-end gap-2 sm:gap-4">
-                {towers.map((entry, i) => {
-                  const id = entryKey(entry);
-                  const mine = isMe(entry.userName);
-                  return (
-                    <li
-                      key={id}
-                      ref={(el) => {
-                        if (el) itemRefs.current.set(id, el);
-                        else itemRefs.current.delete(id);
-                      }}
-                      className="relative flex min-w-0 flex-1 flex-col items-center justify-end"
-                    >
-                      {/* Champion extras */}
-                      {entry.rank === 1 && (
-                        <>
-                          <div className="mb-1 flex items-end gap-1">
-                            <svg viewBox="0 0 48 32" className="qz-bob h-9 w-14" aria-hidden="true">
-                              <path
-                                d="M4 28 L8 8 L18 18 L24 4 L30 18 L40 8 L44 28 Z"
-                                fill="#FFE94A"
-                                stroke="#0F3D2E"
-                                strokeWidth="3"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                            <span className="-rotate-6 font-[family-name:var(--font-hand)] text-xl text-[#0F3D2E]">
-                              champ!
-                            </span>
-                          </div>
-                          <span aria-hidden="true" className="pointer-events-none absolute left-1/2 top-8">
-                            {CONFETTI.map((piece, k) => (
-                              <i
-                                key={k}
-                                className={`qz-confetti absolute block h-2.5 w-2.5 ${piece.c}`}
-                                style={
-                                  {
-                                    "--x": `${piece.x}px`,
-                                    "--y": `${piece.y}px`,
-                                    "--rot": `${piece.r}deg`,
-                                    animationDelay: "1.1s",
-                                  } as CSSProperties
-                                }
-                              />
-                            ))}
-                          </span>
-                        </>
-                      )}
+          {/* Dedicated Top 3 Podium for this specific Quiz */}
+          {topThree.length >= 3 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10 items-end">
+              {/* Rank 2 - Silver */}
+              {second && (
+                <div className="order-2 md:order-1 rounded-[16px] border-[2.5px] border-[#0F3D2E] bg-[#FFFDF5] p-6 shadow-[6px_6px_0_#0F3D2E] text-center space-y-1">
+                  <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#E3F9EE] border-2 border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E] mb-3">
+                    <Medal className="h-8 w-8 text-[#0F3D2E]" />
+                    <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#0F3D2E] text-white text-xs font-extrabold">
+                      2
+                    </span>
+                  </div>
+                  <div className="text-xs uppercase font-extrabold text-[#0F3D2E]/80 tracking-wider">
+                    🥈 Silver Rank
+                  </div>
+                  <h3 className="font-bold text-lg text-[#0F3D2E] line-clamp-1">{second.userName}</h3>
+                  <div className="text-2xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E] pt-1">
+                    {second.score} / {second.totalQuestions}
+                  </div>
+                  <p className="text-xs text-[#0F3D2E]/70 flex items-center justify-center gap-1 font-mono font-medium">
+                    <Clock className="h-3 w-3" />
+                    Time: {formatTime(second.timeTaken)}
+                  </p>
+                  <span className="inline-block text-[11px] mt-2 font-bold px-2 py-0.5 rounded-full bg-[#E3F9EE] border border-[#0F3D2E] text-[#0F3D2E]">
+                    Accuracy: {Math.round((second.score / second.totalQuestions) * 100)}%
+                  </span>
+                </div>
+              )}
 
-                      {/* Score */}
-                      <div className="relative mb-1.5 font-[family-name:var(--font-display)] text-xl font-extrabold text-[#0F3D2E] sm:text-3xl">
-                        <CountUp value={entry.score} />
-                        <span className="text-xs font-bold opacity-60">/{entry.totalQuestions}</span>
-                      </div>
+              {/* Rank 1 - Champion Gold */}
+              {first && (
+                <div className="order-1 md:order-2 rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] shadow-[9px_9px_0_#0F3D2E] text-center transform md:-translate-y-3 overflow-hidden">
+                  <div className="bg-[#0F3D2E] text-[#FFE94A] font-extrabold text-xs py-2 tracking-wider uppercase flex items-center justify-center gap-1.5 border-b-2 border-[#0F3D2E]">
+                    <Award className="h-4 w-4" />
+                    👑 {selectedQuiz.title} Champion
+                  </div>
+                  <div className="p-6 space-y-1">
+                    <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#FFE94A] border-2 border-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E] mb-3">
+                      <Trophy className="h-10 w-10 text-[#0F3D2E]" />
+                    </div>
+                    <div className="text-xs uppercase font-extrabold text-[#0F3D2E] tracking-wider">
+                      🥇 First Place
+                    </div>
+                    <h3 className="font-[family-name:var(--font-display)] font-extrabold text-xl text-[#0F3D2E] line-clamp-1">
+                      {first.userName}
+                    </h3>
+                    <div className="text-3xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E] pt-1">
+                      {first.score} / {first.totalQuestions}
+                    </div>
+                    <p className="text-xs text-[#0F3D2E]/80 flex items-center justify-center gap-1 font-mono font-bold">
+                      <Clock className="h-3.5 w-3.5" />
+                      Record Time: {formatTime(first.timeTaken)}
+                    </p>
+                    <span className="inline-block text-xs mt-2 font-extrabold px-3 py-1 rounded-full bg-[#FFE94A] border-2 border-[#0F3D2E] text-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]">
+                      Accuracy: {Math.round((first.score / first.totalQuestions) * 100)}%
+                    </span>
+                  </div>
+                </div>
+              )}
 
-                      {/* Tower */}
-                      <div
-                        className={`qz-grow flex h-[calc(var(--h)*0.7)] w-full flex-col items-center rounded-t-full border-[3px] border-b-0 border-[#0F3D2E] pt-5 font-[family-name:var(--font-display)] text-5xl font-extrabold shadow-[6px_6px_0_#0F3D2E] transition-[height,translate] duration-700 ease-out hover:-translate-y-2 sm:h-[var(--h)] sm:text-7xl ${TOWER_STYLES[i]}`}
-                        style={
-                          {
-                            "--h": `${towerHeight(entry.score)}px`,
-                            animationDelay: `${i * 100}ms`,
-                          } as CSSProperties
-                        }
-                      >
-                        {entry.rank}
-                        {mine && (
-                          <span className="mb-4 mt-auto -rotate-6 rounded border-2 border-[#0F3D2E] bg-[#FFFDF5] px-2 py-0.5 font-mono text-[10px] font-bold text-[#0F3D2E]">
-                            YOU
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Name strip */}
-                      <div className="w-full border-t-[3px] border-[#0F3D2E] pt-2 text-center">
-                        <p
-                          className={`mx-auto w-fit max-w-full truncate rounded px-2 text-sm font-bold ${
-                            mine ? "bg-[#0F3D2E] text-[#FFE94A]" : "text-[#0F3D2E]"
-                          }`}
-                        >
-                          {mine ? `${entry.userName} (you)` : entry.userName}
-                        </p>
-                        <p className="mt-0.5 flex items-center justify-center gap-1 font-mono text-[11px] font-medium text-[#0F3D2E]/70">
-                          <Clock className="h-3 w-3" />
-                          {formatTime(entry.timeTaken)}
-                        </p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-
-              <p className="mt-6 font-mono text-xs font-bold uppercase text-[#0F3D2E]">
-                {myEntry
-                  ? myEntry.rank === 1
-                    ? "You are in the lead."
-                    : `You are #${myEntry.rank}, ${currentQuizEntries[0].score - myEntry.score} pts from #1.`
-                  : "Take the quiz to appear on the board."}
-              </p>
-              <p className="mt-1 font-mono text-[11px] text-[#0F3D2E]/70">
-                Same score? The faster time ranks higher.
-              </p>
-            </section>
-          ) : (
-            <div className="mb-12 rounded-[18px] border-[3px] border-dashed border-[#0F3D2E] bg-[#FFFDF5] p-10 text-center shadow-[5px_5px_0_#0F3D2E]">
-              <p className="font-[family-name:var(--font-display)] text-3xl font-extrabold text-[#0F3D2E]">
-                no attempts yet.
-              </p>
-              <p className="mt-2 text-sm font-medium text-[#0F3D2E]/70">
-                Be the first on the board for &quot;{selectedQuiz.title}&quot;.
-              </p>
+              {/* Rank 3 - Bronze */}
+              {third && (
+                <div className="order-3 rounded-[16px] border-[2.5px] border-[#0F3D2E] bg-[#FFFDF5] p-6 shadow-[6px_6px_0_#0F3D2E] text-center space-y-1">
+                  <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#FFE94A]/40 border-2 border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E] mb-3">
+                    <Medal className="h-8 w-8 text-[#0F3D2E]" />
+                    <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#0F3D2E] text-white text-xs font-extrabold">
+                      3
+                    </span>
+                  </div>
+                  <div className="text-xs uppercase font-extrabold text-[#0F3D2E]/80 tracking-wider">
+                    🥉 Bronze Rank
+                  </div>
+                  <h3 className="font-bold text-lg text-[#0F3D2E] line-clamp-1">{third.userName}</h3>
+                  <div className="text-2xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E] pt-1">
+                    {third.score} / {third.totalQuestions}
+                  </div>
+                  <p className="text-xs text-[#0F3D2E]/70 flex items-center justify-center gap-1 font-mono font-medium">
+                    <Clock className="h-3 w-3" />
+                    Time: {formatTime(third.timeTaken)}
+                  </p>
+                  <span className="inline-block text-[11px] mt-2 font-bold px-2 py-0.5 rounded-full bg-[#E3F9EE] border border-[#0F3D2E] text-[#0F3D2E]">
+                    Accuracy: {Math.round((third.score / third.totalQuestions) * 100)}%
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Full standings table */}
-          <div className="overflow-hidden rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] shadow-[9px_9px_0_#0F3D2E]">
-            <div className="border-b-2 border-[#0F3D2E] p-5 pb-4 sm:p-6">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          {/* Main Table Card for this specific Quiz */}
+          <div className="rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] shadow-[9px_9px_0_#0F3D2E] overflow-hidden">
+            <div className="p-5 sm:p-6 pb-4 border-b-2 border-[#0F3D2E]">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h3 className="font-[family-name:var(--font-display)] text-xl font-extrabold text-[#0F3D2E]">
+                  <h3 className="text-xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E]">
                     Standings for &quot;{selectedQuiz.title}&quot;
                   </h3>
                   <p className="text-xs font-medium text-[#0F3D2E]/70">
@@ -474,139 +361,123 @@ export function LeaderboardView() {
                   </p>
                 </div>
 
+                {/* Search filter within this quiz's leaderboard */}
                 <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#0F3D2E]/60" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#0F3D2E]/60" />
                   <Input
                     placeholder="Search contender..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-9 rounded-[8px] border-2 border-[#0F3D2E] bg-[#FFFDF5] pl-9 text-xs font-medium text-[#0F3D2E] placeholder:text-[#0F3D2E]/40 focus-visible:ring-[#0F3D2E]"
+                    className="pl-9 h-9 bg-[#FFFDF5] border-2 border-[#0F3D2E] rounded-[8px] text-[#0F3D2E] placeholder:text-[#0F3D2E]/40 font-medium text-xs focus-visible:ring-[#0F3D2E]"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="overflow-x-auto p-0">
+            <div className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="border-b-2 border-[#0F3D2E] bg-[#E3F9EE] hover:bg-[#E3F9EE]">
-                    <TableHead className="w-16 text-center text-xs font-extrabold text-[#0F3D2E]">Rank</TableHead>
-                    <TableHead className="text-xs font-extrabold text-[#0F3D2E]">Contender</TableHead>
-                    <TableHead className="text-center text-xs font-extrabold text-[#0F3D2E]">Score</TableHead>
-                    <TableHead className="text-center text-xs font-extrabold text-[#0F3D2E]">Accuracy</TableHead>
-                    <TableHead className="pr-6 text-right text-xs font-extrabold text-[#0F3D2E]">Time Taken</TableHead>
+                    <TableHead className="w-16 text-center font-extrabold text-[#0F3D2E] text-xs">Rank</TableHead>
+                    <TableHead className="font-extrabold text-[#0F3D2E] text-xs">Contender</TableHead>
+                    <TableHead className="text-center font-extrabold text-[#0F3D2E] text-xs">Score</TableHead>
+                    <TableHead className="text-center font-extrabold text-[#0F3D2E] text-xs">Accuracy</TableHead>
+                    <TableHead className="text-right pr-6 font-extrabold text-[#0F3D2E] text-xs">Time Taken</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {loading &&
-                    [0, 1, 2, 3, 4].map((i) => (
-                      <TableRow key={`skeleton-${i}`} className="border-b border-[#0F3D2E]/20">
-                        <TableCell colSpan={5} className="py-3">
-                          <div
-                            className="h-7 animate-pulse rounded bg-[#0F3D2E]/10"
-                            style={{ animationDelay: `${i * 100}ms` }}
-                          />
+                  {filteredLeaderboard.map((entry) => {
+                    const accuracy = Math.round(
+                      (entry.score / entry.totalQuestions) * 100
+                    );
+
+                    return (
+                      <TableRow
+                        key={`${entry.userId}_${entry.rank}`}
+                        className="transition-colors hover:bg-[#E3F9EE]/40 border-b border-[#0F3D2E]/20"
+                      >
+                        <TableCell className="text-center font-bold">
+                          {entry.rank === 1 ? (
+                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#FFE94A] border border-[#0F3D2E] font-extrabold text-sm">
+                              🥇
+                            </span>
+                          ) : entry.rank === 2 ? (
+                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#E3F9EE] border border-[#0F3D2E] font-extrabold text-sm">
+                              🥈
+                            </span>
+                          ) : entry.rank === 3 ? (
+                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#FFE94A]/40 border border-[#0F3D2E] font-extrabold text-sm">
+                              🥉
+                            </span>
+                          ) : (
+                            <span className="text-[#0F3D2E]/70 text-sm font-bold font-mono">
+                              #{entry.rank}
+                            </span>
+                          )}
+                        </TableCell>
+
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8 border-2 border-[#0F3D2E]">
+                              <AvatarFallback className="bg-[#FFE94A] text-[#0F3D2E] text-xs font-extrabold">
+                                {entry.userName.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <span className="font-bold text-sm text-[#0F3D2E]">
+                                {entry.userName}
+                              </span>
+                              {entry.rank === 1 && (
+                                <span className="ml-2 text-[10px] text-[#0F3D2E] bg-[#FFE94A] px-2 py-0.5 rounded-full border border-[#0F3D2E] font-extrabold">
+                                  👑 Leader
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="text-center">
+                          <span className="font-extrabold text-sm text-[#0F3D2E]">{entry.score}</span>
+                          <span className="text-xs text-[#0F3D2E]/60 font-semibold">
+                            /{entry.totalQuestions}
+                          </span>
+                        </TableCell>
+
+                        <TableCell className="text-center">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold border border-[#0F3D2E] ${
+                              accuracy >= 80
+                                ? "bg-[#E3F9EE] text-[#0F3D2E]"
+                                : "bg-[#FFFDF5] text-[#0F3D2E]/80"
+                            }`}
+                          >
+                            {accuracy}%
+                          </span>
+                        </TableCell>
+
+                        <TableCell className="text-right pr-6 font-[family-name:var(--font-mono)] text-xs font-bold text-[#0F3D2E]">
+                          {formatTime(entry.timeTaken)}
                         </TableCell>
                       </TableRow>
-                    ))}
+                    );
+                  })}
 
-                  {!loading &&
-                    filteredLeaderboard.map((entry) => {
-                      const accuracy = Math.round((entry.score / entry.totalQuestions) * 100);
-
-                      return (
-                        <TableRow
-                          key={entryKey(entry)}
-                          className={`border-b border-[#0F3D2E]/20 transition-colors hover:bg-[#E3F9EE]/40 ${
-                            isMe(entry.userName) ? "bg-[#FFE94A]/40" : ""
-                          }`}
-                        >
-                          <TableCell className="text-center font-bold">
-                            {entry.rank === 1 ? (
-                              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#0F3D2E] bg-[#FFE94A] text-sm font-extrabold">
-                                🥇
-                              </span>
-                            ) : entry.rank === 2 ? (
-                              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#0F3D2E] bg-[#E3F9EE] text-sm font-extrabold">
-                                🥈
-                              </span>
-                            ) : entry.rank === 3 ? (
-                              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#0F3D2E] bg-[#FFE94A]/40 text-sm font-extrabold">
-                                🥉
-                              </span>
-                            ) : (
-                              <span className="font-mono text-sm font-bold text-[#0F3D2E]/70">
-                                #{entry.rank}
-                              </span>
-                            )}
-                          </TableCell>
-
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8 border-2 border-[#0F3D2E]">
-                                <AvatarFallback className="bg-[#FFE94A] text-xs font-extrabold text-[#0F3D2E]">
-                                  {entry.userName.charAt(0)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <span className="text-sm font-bold text-[#0F3D2E]">{entry.userName}</span>
-                                {isMe(entry.userName) && (
-                                  <span className="ml-2 rounded-full border border-[#0F3D2E] bg-[#0F3D2E] px-2 py-0.5 text-[10px] font-extrabold text-[#FFE94A]">
-                                    You
-                                  </span>
-                                )}
-                                {entry.rank === 1 && (
-                                  <span className="ml-2 rounded-full border border-[#0F3D2E] bg-[#FFE94A] px-2 py-0.5 text-[10px] font-extrabold text-[#0F3D2E]">
-                                    👑 Leader
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </TableCell>
-
-                          <TableCell className="text-center">
-                            <span className="text-sm font-extrabold text-[#0F3D2E]">{entry.score}</span>
-                            <span className="text-xs font-semibold text-[#0F3D2E]/60">
-                              /{entry.totalQuestions}
-                            </span>
-                          </TableCell>
-
-                          <TableCell className="text-center">
-                            <span
-                              className={`inline-block rounded-full border border-[#0F3D2E] px-2 py-0.5 text-xs font-bold ${
-                                accuracy >= 80
-                                  ? "bg-[#E3F9EE] text-[#0F3D2E]"
-                                  : "bg-[#FFFDF5] text-[#0F3D2E]/80"
-                              }`}
-                            >
-                              {accuracy}%
-                            </span>
-                          </TableCell>
-
-                          <TableCell className="pr-6 text-right font-mono text-xs font-bold text-[#0F3D2E]">
-                            {formatTime(entry.timeTaken)}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-
-                  {!loading && filteredLeaderboard.length === 0 && (
+                  {filteredLeaderboard.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="h-32 text-center text-sm text-[#0F3D2E]">
+                      <TableCell
+                        colSpan={5}
+                        className="h-32 text-center text-[#0F3D2E] text-sm"
+                      >
                         <div className="flex flex-col items-center justify-center gap-2">
                           <Trophy className="h-8 w-8 text-[#0F3D2E]/40" />
                           <p className="font-bold text-[#0F3D2E]">
                             No contender records for this quiz yet
                           </p>
                           <p className="text-xs text-[#0F3D2E]/70">
-                            Be the first to complete &quot;{selectedQuiz.title}&quot; and claim the
-                            #1 spot!
+                            Be the first to complete &quot;{selectedQuiz.title}&quot; and claim the #1 spot!
                           </p>
                           <Link href={attemptQuizHref} className="mt-1">
-                            <Button
-                              size="sm"
-                              className="rounded-[8px] border-2 border-[#0F3D2E] bg-[#FFE94A] font-extrabold text-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E] hover:bg-[#FFE94A]/90"
-                            >
+                            <Button size="sm" className="bg-[#FFE94A] hover:bg-[#FFE94A]/90 text-[#0F3D2E] font-extrabold border-2 border-[#0F3D2E] rounded-[8px] shadow-[2px_2px_0_#0F3D2E]">
                               Start Quiz Now
                             </Button>
                           </Link>

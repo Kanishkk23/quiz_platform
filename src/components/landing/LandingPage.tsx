@@ -19,11 +19,8 @@ export default function LandingPage() {
           <span className={s.brandName}>quizora</span>
           <span className={s.brandTag}>-B</span>
         </Link>
-        <nav className={s.nav} aria-label="Main navigation">
-          <Link href="/leaderboard" className={`${s.navLink} ${s.navLeaderboard}`}>
-            Leaderboard
-          </Link>
-          <Link href="/login" className={`${s.navLink} ${s.navLogin}`}>
+        <nav className={s.nav} aria-label="Account">
+          <Link href="/login" className={s.navLink}>
             Login
           </Link>
           <Link href="/register" className={s.navCta}>
