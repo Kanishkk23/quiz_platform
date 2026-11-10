@@ -1,17 +1,19 @@
 import type { CSSProperties } from "react";
 
 type Props = {
-  /** Optional path to your real logo (e.g. "/logo.svg"). If omitted, the built-in SVG mark is used. */
+  /** Optional path to a custom logo file (e.g. "/logo.svg"). If omitted, the built-in SVG mark is used. */
   src?: string;
   size?: number;
   className?: string;
   style?: CSSProperties;
 };
 
+const BUBBLE =
+  "M30 6H66A22 22 0 0 1 88 28V56A22 22 0 0 1 66 78H42L16 94L22 78H30A22 22 0 0 1 8 56V28A22 22 0 0 1 30 6Z";
+
 /**
- * Quizora speech-bubble mark.
- * The inline SVG is a faithful redraw of the logo for the intro.
- * Pass `logoSrc` to <IntroGate /> to use your own file instead.
+ * Quizora mark: a speech bubble holding a Q whose tail is a checkmark.
+ * Pass `src` to use your own image file instead.
  */
 export default function QuizoraMark({ src, size = 132, className, style }: Props) {
   if (src) {
@@ -31,30 +33,25 @@ export default function QuizoraMark({ src, size = 132, className, style }: Props
 
   return (
     <svg
-      viewBox="0 0 120 124"
+      viewBox="0 0 100 100"
       width={size}
       height={size}
       className={className}
       style={style}
       aria-hidden="true"
       focusable="false"
+      fill="none"
     >
+      <path d={BUBBLE} transform="translate(4 4)" fill="#0F3D2E" />
+      <path d={BUBBLE} fill="#FFE94A" stroke="#0F3D2E" strokeWidth="3.5" strokeLinejoin="round" />
+      <circle cx="46" cy="40" r="17" stroke="#0F3D2E" strokeWidth="8" />
       <path
-        d="M28 4h64a24 24 0 0 1 24 24v40a24 24 0 0 1-24 24H56L30 118l5-26h-7A24 24 0 0 1 4 68V28A24 24 0 0 1 28 4Z"
-        fill="#7f9f70"
-      />
-      <path
-        d="M21 35l5.5 5.5L38 28"
-        fill="none"
-        stroke="#fff"
-        strokeWidth="4.5"
+        d="M50 46L60 56L78 32"
+        stroke="#0F3D2E"
+        strokeWidth="8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <rect x="45" y="25" width="55" height="19" rx="9.5" fill="#d2570a" />
-      <rect x="53" y="32.5" width="39" height="4" rx="2" fill="#1f2a24" />
-      <rect x="21" y="55" width="52" height="6.5" rx="3.25" fill="#fff" opacity=".92" />
-      <rect x="21" y="69" width="30" height="6.5" rx="3.25" fill="#fff" opacity=".7" />
     </svg>
   );
 }

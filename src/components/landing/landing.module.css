@@ -388,13 +388,17 @@
   .header { padding: 14px 16px; }
   .hero { padding-left: 16px; padding-right: 16px; }
   .brandName { font-size: 26px; }
-  .nav { gap: 14px; }
+  .nav { gap: 10px; }
+  .navCta { padding: 8px 12px; }
   .opt { padding: 10px 12px; }
   .optText { font-size: 16px; }
   .perks { flex-direction: column; gap: 10px; }
   .floatA, .floatB { display: none !important; }
   .brandTag { display: none; }
   .brandMark { width: 38px; height: 38px; }
+}
+@media (max-width: 380px) {
+  .navLogin { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .bob, .burst span, .xp, .floatA, .floatB { animation: none !important; }
