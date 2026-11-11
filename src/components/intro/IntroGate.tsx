@@ -32,21 +32,12 @@ export default function IntroGate({
   logoSrc,
   children,
 }: Props) {
-  const [phase, setPhase] = useState<Phase>(() => {
-    if (typeof window !== "undefined" && once) {
-      if (hasIntroPlayed) return "done";
-      try {
-        if (sessionStorage.getItem(STORAGE_KEY) === "1") {
-          hasIntroPlayed = true;
-          return "done";
-        }
-      } catch {}
-    }
-    return "check";
-  });
+  const [mounted, setMounted] = useState(false);
+  const [phase, setPhase] = useState<Phase>("check");
 
-  // Decide whether to play (runs on the client only)
+  // Decide whether to play on client mount to eliminate hydration mismatch
   useEffect(() => {
+    setMounted(true);
     let seen = false;
     try {
       seen = once && (hasIntroPlayed || sessionStorage.getItem(STORAGE_KEY) === "1");
@@ -86,7 +77,7 @@ export default function IntroGate({
   }, [phase, variant]);
 
   // Lock page scroll while the intro is on screen
-  const active = phase === "play" || phase === "exit";
+  const active = mounted && (phase === "play" || phase === "exit");
   useEffect(() => {
     if (!active) return;
     const prev = document.documentElement.style.overflow;
@@ -113,7 +104,7 @@ export default function IntroGate({
   return (
     <>
       {children}
-      {phase !== "done" && (
+      {mounted && phase !== "done" && (
         <div
           className={`${styles.overlay} ${phase === "exit" ? styles.exit : ""}`}
           role="presentation"
