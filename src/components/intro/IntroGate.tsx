@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import AnswerDeckIntro from "./AnswerDeckIntro";
 import QuizCubeIntro from "./QuizCubeIntro";
 import styles from "./IntroGate.module.css";
@@ -25,6 +25,7 @@ const EXIT_MS = 900;
 
 // In-memory session tracker to prevent intro from replaying on client-side navigation back to Home
 let hasIntroPlayed = false;
+const emptySubscribe = () => () => {};
 
 export default function IntroGate({
   variant = "deck",
@@ -32,26 +33,35 @@ export default function IntroGate({
   logoSrc,
   children,
 }: Props) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [phase, setPhase] = useState<Phase>("check");
 
-  // Decide whether to play on client mount to eliminate hydration mismatch
   useEffect(() => {
-    setMounted(true);
-    let seen = false;
-    try {
-      seen = once && (hasIntroPlayed || sessionStorage.getItem(STORAGE_KEY) === "1");
-    } catch {}
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (seen || reduce) {
-      setPhase("done");
-    } else {
-      hasIntroPlayed = true;
-      try {
-        sessionStorage.setItem(STORAGE_KEY, "1");
-      } catch {}
+    if (!once) {
       setPhase("play");
+      return;
     }
+
+    try {
+      if (hasIntroPlayed || sessionStorage.getItem(STORAGE_KEY) === "1") {
+        hasIntroPlayed = true;
+        setPhase("done");
+        return;
+      }
+    } catch {}
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reduce) {
+      setPhase("done");
+      return;
+    }
+
+    hasIntroPlayed = true;
+    try {
+      sessionStorage.setItem(STORAGE_KEY, "1");
+    } catch {}
+    setPhase("play");
   }, [once]);
 
   // play -> exit -> done
