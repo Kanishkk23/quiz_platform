@@ -1,100 +1,115 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { mockQuizzes, mockQuestions } from "@/data/mock";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Trophy,
   CheckCircle2,
   XCircle,
   Clock,
   RotateCcw,
-  BookOpen,
   ArrowRight,
   HelpCircle,
-  Filter,
-  Sparkles,
-  Award,
+  Loader2,
 } from "lucide-react";
+import { AttemptReviewResponse, QuestionReview } from "@/types/attempts";
 
 interface QuizResultViewProps {
   quizId: string;
 }
 
-interface StoredResult {
-  quizId: string;
-  quizTitle: string;
-  answers: Record<string, string>;
-  score: number;
-  totalQuestions: number;
-  timeTaken: number;
-  completedAt: string;
-}
-
 export function QuizResultView({ quizId }: QuizResultViewProps) {
-  const [result, setResult] = useState<StoredResult | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const searchParams = useSearchParams();
+  const attemptId = searchParams.get("attemptId");
+
+  const [loading, setLoading] = useState(true);
+  const [review, setReview] = useState<AttemptReviewResponse | null>(null);
+  const [quizTitle, setQuizTitle] = useState("Quiz Result");
   const [reviewFilter, setReviewFilter] = useState<"all" | "correct" | "incorrect" | "skipped">("all");
 
-  const quiz = useMemo(() => {
-    return mockQuizzes.find((q) => q.id === quizId);
-  }, [quizId]);
-
-  const questions = useMemo(() => {
-    return mockQuestions[quizId] || [];
-  }, [quizId]);
-
   useEffect(() => {
-    setMounted(true);
-    const stored = localStorage.getItem(`quiz_result_${quizId}`);
-    if (stored) {
+    let isCancelled = false;
+
+    async function loadResult() {
       try {
-        setResult(JSON.parse(stored));
+        setLoading(true);
+
+        // Fetch Quiz metadata for title
+        try {
+          const quizRes = await fetch(`/api/quizzes/${quizId}`);
+          const quizJson = await quizRes.json();
+          if (quizJson.success && quizJson.data?.quiz?.title) {
+            setQuizTitle(quizJson.data.quiz.title);
+          }
+        } catch {
+          // ignore
+        }
+
+        if (attemptId) {
+          // Fetch secure server review from Attempt Engine
+          const res = await fetch(`/api/attempts/${attemptId}/review`);
+          const data = await res.json();
+          if (!isCancelled && res.ok && data.success) {
+            setReview(data.data);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Fallback: check localStorage for legacy/offline cached attempt
+        const stored = localStorage.getItem(`quiz_result_${quizId}`);
+        if (!isCancelled && stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            setReview({
+              attemptId: parsed.attemptId || "cached",
+              quizId,
+              userId: "user",
+              score: parsed.score || 0,
+              totalPoints: (parsed.totalQuestions || 10) * 2,
+              timeTakenSeconds: parsed.timeTaken || 0,
+              submittedAt: parsed.completedAt || new Date().toISOString(),
+              totalQuestions: parsed.totalQuestions || 10,
+              correctCount: parsed.score || 0,
+              percentage: Math.round(((parsed.score || 0) / (parsed.totalQuestions || 10)) * 100),
+              questions: [],
+            });
+          } catch {
+            // ignore
+          }
+        }
       } catch {
-        // fallback
+        // ignore
+      } finally {
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     }
-  }, [quizId]);
 
-  if (mounted && !result && questions.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-20 text-center max-w-md">
-        <div className="rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] p-8 shadow-[9px_9px_0_#0F3D2E]">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FFE94A] border-2 border-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E] mb-4">
-            <Trophy className="h-7 w-7 text-[#0F3D2E]" />
-          </div>
-          <h2 className="text-2xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E] mb-2">
-            No Result Recorded
-          </h2>
-          <p className="text-sm font-medium text-[#0F3D2E]/70 mb-6">
-            You haven&apos;t completed this quiz yet or the quiz is not currently available.
-          </p>
-          <Link href="/quizzes">
-            <Button className="bg-[#FFE94A] hover:bg-[#FFE94A]/90 text-[#0F3D2E] font-extrabold border-2 border-[#0F3D2E] rounded-[10px] shadow-[3px_3px_0_#0F3D2E]">
-              Browse Quizzes
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
+    loadResult();
 
-  // Compute stats
-  const totalQuestions = result ? result.totalQuestions : questions.length || 1;
-  const userScore = result ? result.score : 0;
-  const timeTaken = result ? result.timeTaken : 0;
-  const percentage = Math.round((userScore / totalQuestions) * 100);
+    return () => {
+      isCancelled = true;
+    };
+  }, [quizId, attemptId]);
 
-  const correctCount = userScore;
-  const answeredCount = result ? Object.keys(result.answers).length : 0;
+  const questions: QuestionReview[] = useMemo(() => review?.questions || [], [review?.questions]);
+  const totalQuestions = review?.totalQuestions || questions.length || 0;
+  const userScore = review?.score || 0;
+  const totalPoints = review?.totalPoints || 0;
+  const timeTaken = review?.timeTakenSeconds || 0;
+  const percentage = review?.percentage ?? (totalPoints > 0 ? Math.round((userScore / totalPoints) * 100) : 0);
+
+  const correctCount = review?.correctCount || 0;
+  const answeredCount = questions.filter((q) => q.userOptionId !== null).length;
   const incorrectCount = Math.max(0, answeredCount - correctCount);
   const unansweredCount = Math.max(0, totalQuestions - answeredCount);
 
-  const correctPercent = Math.round((correctCount / totalQuestions) * 100);
-  const incorrectPercent = Math.round((incorrectCount / totalQuestions) * 100);
+  const correctPercent = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+  const incorrectPercent = totalQuestions > 0 ? Math.round((incorrectCount / totalQuestions) * 100) : 0;
   const skippedPercent = Math.max(0, 100 - correctPercent - incorrectPercent);
 
   const minutes = Math.floor(timeTaken / 60);
@@ -106,7 +121,7 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
       return {
         label: "🏆 Master Tier • Champion Performance",
         color: "bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]",
-        message: "Incredible accuracy! You have a high chance of securing the #1 Gold spot on the leaderboard.",
+        message: "Incredible accuracy! You have a high chance of securing the #1 spot on the leaderboard.",
       };
     } else if (percentage >= 70) {
       return {
@@ -130,22 +145,59 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
   };
 
   const performance = getPerformanceBadge();
-  const title = result?.quizTitle || quiz?.title || "Quiz Result";
 
   // Filter questions for review
-  const filteredQuestions = questions.filter((question) => {
-    const userSelected = result?.answers?.[question.id];
-    const isCorrect = userSelected === question.correctOptionId;
-    const isAnswered = !!userSelected;
+  const filteredQuestions = useMemo(() => {
+    return questions.filter((q) => {
+      const isAnswered = q.userOptionId !== null;
+      if (reviewFilter === "correct") return q.isCorrect;
+      if (reviewFilter === "incorrect") return isAnswered && !q.isCorrect;
+      if (reviewFilter === "skipped") return !isAnswered;
+      return true;
+    });
+  }, [questions, reviewFilter]);
 
-    if (reviewFilter === "correct") return isCorrect;
-    if (reviewFilter === "incorrect") return isAnswered && !isCorrect;
-    if (reviewFilter === "skipped") return !isAnswered;
-    return true;
-  });
+  if (loading) {
+    return (
+      <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center bg-[#BDF2D5]">
+        <div className="rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] p-8 shadow-[9px_9px_0_#0F3D2E] text-center max-w-sm">
+          <Loader2 className="h-10 w-10 animate-spin text-[#0F3D2E] mx-auto mb-4" />
+          <h3 className="text-lg font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E]">
+            Loading Verified Result...
+          </h3>
+          <p className="text-xs text-[#0F3D2E]/70 mt-1 font-medium">
+            Fetching secure scoring and solutions from Supabase...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!review && !loading) {
+    return (
+      <div className="container mx-auto px-4 py-20 text-center max-w-md">
+        <div className="rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] p-8 shadow-[9px_9px_0_#0F3D2E]">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FFE94A] border-2 border-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E] mb-4">
+            <Trophy className="h-7 w-7 text-[#0F3D2E]" />
+          </div>
+          <h2 className="text-2xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E] mb-2">
+            No Result Recorded
+          </h2>
+          <p className="text-sm font-medium text-[#0F3D2E]/70 mb-6">
+            You haven&apos;t completed this quiz yet or the quiz is not currently available.
+          </p>
+          <Link href="/quizzes">
+            <Button className="bg-[#FFE94A] hover:bg-[#FFE94A]/90 text-[#0F3D2E] font-extrabold border-2 border-[#0F3D2E] rounded-[10px] shadow-[3px_3px_0_#0F3D2E]">
+              Browse Quizzes
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto max-w-4xl">
+    <div className="container mx-auto max-w-4xl py-8 px-4">
       {/* Score Summary Hero Card */}
       <div className="mb-8 rounded-[20px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] p-6 sm:p-8 shadow-[9px_9px_0_#0F3D2E]">
         <div className="text-center pb-2">
@@ -153,10 +205,10 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
             <Trophy className="h-8 w-8 text-[#0F3D2E]" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-[family-name:var(--font-display)] font-extrabold tracking-tight text-[#0F3D2E]">
-            Quiz Complete: {title}
+            Quiz Complete: {quizTitle}
           </h1>
           <p className="text-sm font-medium text-[#0F3D2E]/80 mt-1">
-            Your performance has been evaluated and recorded for the {title} Leaderboard
+            Server-verified result recorded in database for Leaderboard ranking
           </p>
 
           <div className="pt-3">
@@ -178,6 +230,16 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
             <div className="rounded-[14px] border-[2px] border-[#0F3D2E] bg-[#E3F9EE] p-3 sm:p-4 shadow-[3px_3px_0_#0F3D2E]">
               <div className="flex items-center justify-center gap-1.5 text-[#0F3D2E] text-xs font-bold mb-1">
                 <CheckCircle2 className="h-4 w-4 text-[#1F9D6B]" />
+                Score
+              </div>
+              <div className="text-2xl sm:text-3xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E]">
+                {userScore} <span className="text-sm text-[#0F3D2E]/60">/ {totalPoints}</span>
+              </div>
+            </div>
+
+            <div className="rounded-[14px] border-[2px] border-[#0F3D2E] bg-[#FFFDF5] p-3 sm:p-4 shadow-[3px_3px_0_#0F3D2E]">
+              <div className="flex items-center justify-center gap-1.5 text-[#1F9D6B] text-xs font-bold mb-1">
+                <CheckCircle2 className="h-4 w-4 text-[#1F9D6B]" />
                 Correct
               </div>
               <div className="text-2xl sm:text-3xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E]">
@@ -192,16 +254,6 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
               </div>
               <div className="text-2xl sm:text-3xl font-[family-name:var(--font-display)] font-extrabold text-[#E5484D]">
                 {incorrectCount}
-              </div>
-            </div>
-
-            <div className="rounded-[14px] border-[2px] border-[#0F3D2E] bg-[#FFFDF5] p-3 sm:p-4 shadow-[3px_3px_0_#0F3D2E]">
-              <div className="flex items-center justify-center gap-1.5 text-[#0F3D2E]/70 text-xs font-bold mb-1">
-                <HelpCircle className="h-4 w-4" />
-                Skipped
-              </div>
-              <div className="text-2xl sm:text-3xl font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E]">
-                {unansweredCount}
               </div>
             </div>
 
@@ -263,9 +315,9 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
             </div>
           </div>
 
-          {/* Action buttons with Per-Quiz Leaderboard link */}
+          {/* Action buttons */}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link href={`/quizzes/${quizId}`}>
+            <Link href={`/quizzes/${quizId}?retake=true`}>
               <Button
                 variant="outline"
                 className="gap-2 bg-[#FFFDF5] hover:bg-[#E3F9EE] text-[#0F3D2E] font-bold border-2 border-[#0F3D2E] rounded-[10px] shadow-[3px_3px_0_#0F3D2E]"
@@ -304,7 +356,7 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
                 Review Question Solutions
               </h2>
               <p className="text-xs font-medium text-[#0F3D2E]/70">
-                Examine your answers against verified solutions
+                Verified solutions and explanations fetched securely from Supabase
               </p>
             </div>
 
@@ -355,13 +407,13 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
 
           <div className="space-y-4">
             {filteredQuestions.map((q, idx) => {
-              const userAnswerId = result?.answers?.[q.id];
-              const isCorrect = userAnswerId === q.correctOptionId;
+              const userAnswerId = q.userOptionId;
+              const isCorrect = q.isCorrect;
               const isSkipped = !userAnswerId;
 
               return (
                 <div
-                  key={q.id}
+                  key={q.questionId}
                   className="rounded-[16px] border-[2.5px] border-[#0F3D2E] bg-[#FFFDF5] p-5 shadow-[5px_5px_0_#0F3D2E] text-[#0F3D2E]"
                 >
                   <div className="flex items-center justify-between gap-2 mb-2">
@@ -371,7 +423,7 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
                     {isCorrect ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#E3F9EE] border-2 border-[#0F3D2E] text-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]">
                         <CheckCircle2 className="h-3 w-3 text-[#1F9D6B]" />
-                        Correct (+10 pts)
+                        Correct
                       </span>
                     ) : isSkipped ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border-2 border-[#0F3D2E]/40 text-[#0F3D2E]/60">
@@ -387,13 +439,13 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
                   </div>
 
                   <h3 className="text-base font-bold text-[#0F3D2E] mb-3">
-                    {q.text}
+                    {q.questionText}
                   </h3>
 
                   <div className="grid grid-cols-1 gap-2">
                     {q.options.map((opt) => {
                       const isUserPick = opt.id === userAnswerId;
-                      const isCorrectAnswer = opt.id === q.correctOptionId;
+                      const isCorrectAnswer = opt.isCorrect;
 
                       let style = "border-[1.5px] border-[#0F3D2E]/20 bg-[#FFFDF5] text-[#0F3D2E]/80";
 

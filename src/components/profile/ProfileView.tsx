@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -36,21 +36,24 @@ interface AttemptRecord {
   timerMode?: "quiz" | "question";
 }
 
+const emptySubscribe = () => () => {};
+
 export function ProfileView() {
   const { user, isAuthenticated } = useAuth();
   const [history, setHistory] = useState<AttemptRecord[]>([]);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   useEffect(() => {
-    setMounted(true);
-    try {
-      const stored = localStorage.getItem("quiz_attempt_history");
-      if (stored) {
-        setHistory(JSON.parse(stored));
+    queueMicrotask(() => {
+      try {
+        const stored = localStorage.getItem("quiz_attempt_history");
+        if (stored) {
+          setHistory(JSON.parse(stored));
+        }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
-    }
+    });
   }, []);
 
   const clearHistory = () => {

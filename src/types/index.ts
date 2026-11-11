@@ -18,6 +18,9 @@ export interface Quiz {
   timerMode?: "quiz" | "question"; // Support per-quiz or per-question timer
   questionTimeLimit?: number; // in seconds per question when in question mode
   createdAt: string;
+  availability?: "live" | "upcoming" | "finished";
+  startsAt?: string;
+  endsAt?: string;
 }
 
 export interface Question {

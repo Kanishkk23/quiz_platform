@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { mockQuizzes, mockQuestions } from "@/data/mock";
 import { QuestionCard } from "@/components/quiz/QuestionCard";
 import { QuizTimer } from "@/components/quiz/QuizTimer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -27,8 +25,11 @@ import {
   Lock,
   Flame,
   ShieldAlert,
+  Loader2,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { AttemptState } from "@/types/attempts";
+import { Question, Quiz } from "@/types";
 
 interface QuizAttemptViewProps {
   quizId: string;
@@ -36,154 +37,202 @@ interface QuizAttemptViewProps {
 
 export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isRetake = searchParams.get("retake") === "true";
   const { user, isAuthenticated } = useAuth();
-  const [, setAuthChecked] = useState(false);
 
-  // Authentication guard: redirect to login if not authenticated
-  useEffect(() => {
-    setAuthChecked(true);
-    if (!isAuthenticated) {
-      router.replace(`/login?redirect=/quizzes/${quizId}`);
-    }
-  }, [isAuthenticated, quizId, router]);
-
-  const quiz = useMemo(() => {
-    return (
-      mockQuizzes.find((q) => q.id === quizId) || {
-        id: quizId,
-        title: "Quiz " + quizId,
-        description: "Interactive knowledge evaluation",
-        category: "General",
-        difficulty: "medium" as const,
-        questionCount: 10,
-        timeLimit: 600,
-        timerMode: "quiz" as const,
-        questionTimeLimit: 30,
-        createdAt: new Date().toISOString(),
-      }
-    );
-  }, [quizId]);
-
-  const questions = useMemo(() => {
-    return mockQuestions[quizId] || [];
-  }, [quizId]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [attempt, setAttempt] = useState<AttemptState | null>(null);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
-  const [startTime] = useState<number>(() => Date.now());
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingAnswer, setIsSavingAnswer] = useState(false);
 
   // Timer mode state: can be per-quiz (overall) or per-question
-  const [timerMode, setTimerMode] = useState<"quiz" | "question">(
-    quiz.timerMode || "quiz"
-  );
-  const perQuestionTimeLimit = quiz.questionTimeLimit || 30;
+  const [timerMode, setTimerMode] = useState<"quiz" | "question">("quiz");
+  const [remainingTime, setRemainingTime] = useState<number>(600);
 
-  // Load saved progress if any
+  // Load quiz data and create/restore attempt from Supabase
   useEffect(() => {
-    const saved = localStorage.getItem(`quiz_answers_${quizId}`);
-    if (saved) {
+    let active = true;
+
+    async function initAttempt() {
       try {
-        setAnswers(JSON.parse(saved));
-      } catch {
-        // ignore
+        // 1. Fetch quiz info and questions from Supabase API
+        const quizRes = await fetch(`/api/quizzes/${quizId}`);
+        const quizData = await quizRes.json();
+
+        if (!active) return;
+
+        if (!quizRes.ok || !quizData.success) {
+          throw new Error(quizData.error || "Failed to load quiz details");
+        }
+
+        const loadedQuiz: Quiz = {
+          id: quizData.data.quiz.id,
+          title: quizData.data.quiz.title,
+          description: quizData.data.quiz.description,
+          category: quizData.data.quiz.category,
+          difficulty: "medium",
+          questionCount: quizData.data.quiz.questionCount,
+          timeLimit: quizData.data.quiz.durationSeconds,
+          timerMode: "quiz",
+          questionTimeLimit: quizData.data.quiz.secondsPerQuestion || 30,
+          createdAt: quizData.data.quiz.startsAt,
+        };
+
+        setQuiz(loadedQuiz);
+        setQuestions(
+          (quizData.data.questions || []).map((q: Question) => ({
+            ...q,
+            options: q.options || [],
+            correctOptionId: "", // Kept secret by server
+          }))
+        );
+
+        // 2. If authenticated, create or restore attempt
+        if (isAuthenticated) {
+          const attemptRes = await fetch("/api/attempts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              quizId,
+              forceRetake: isRetake,
+            }),
+          });
+
+          const attemptData = await attemptRes.json();
+
+          if (!active) return;
+
+          if (!attemptRes.ok || !attemptData.success) {
+            throw new Error(attemptData.error || "Failed to initialize quiz attempt");
+          }
+
+          const state: AttemptState = attemptData.data.attempt;
+          setAttempt(state);
+
+          // If attempt is already submitted, redirect to result review
+          if (state.status === "submitted") {
+            router.replace(`/quizzes/${quizId}/result?attemptId=${state.id}`);
+            return;
+          }
+
+          // Restore saved answers from previous session (Attempt Recovery on refresh!)
+          if (state.savedAnswers) {
+            const cleanAnswers: Record<string, string> = {};
+            for (const [k, v] of Object.entries(state.savedAnswers)) {
+              if (v) cleanAnswers[k] = v;
+            }
+            setAnswers(cleanAnswers);
+          }
+
+          // Synchronize server-authoritative timer
+          setRemainingTime(Math.max(10, state.remainingSeconds));
+        }
+      } catch (err: unknown) {
+        if (active) {
+          setError(err instanceof Error ? err.message : "Failed to load quiz attempt");
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
       }
     }
-  }, [quizId]);
 
-  const currentQuestion = questions[currentIndex];
-  const totalQuestions = questions.length;
-  const answeredCount = Object.keys(answers).length;
-  const progressPercent =
-    totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
+    initAttempt();
 
-  const handleSelectOption = (optionId: string) => {
-    if (!currentQuestion) return;
+    return () => {
+      active = false;
+    };
+  }, [quizId, isAuthenticated, isRetake, router]);
+
+  // Handle option selection with immediate optimistic UI and background auto-save
+  const handleSelectOption = async (optionId: string) => {
+    if (!currentQuestion || !attempt) return;
+
+    // 1. Optimistic local update
     const updated = {
       ...answers,
       [currentQuestion.id]: optionId,
     };
     setAnswers(updated);
-    localStorage.setItem(`quiz_answers_${quizId}`, JSON.stringify(updated));
+
+    // 2. Background persistence to Supabase answers table
+    setIsSavingAnswer(true);
+    try {
+      const res = await fetch(`/api/attempts/${attempt.id}/answers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questionId: currentQuestion.id,
+          optionId,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        console.error("Save answer failed:", data);
+      }
+    } catch (err) {
+      console.error("Save answer network error:", err);
+    } finally {
+      setIsSavingAnswer(false);
+    }
   };
 
-  const handleFinishAttempt = useCallback(() => {
-    const timeTaken = Math.round((Date.now() - startTime) / 1000);
+  // Submit attempt to server
+  const handleFinishAttempt = useCallback(async () => {
+    if (!attempt || isSubmitting) return;
 
-    // Calculate score
-    let score = 0;
-    questions.forEach((q) => {
-      if (answers[q.id] === q.correctOptionId) {
-        score += 1;
-      }
-    });
-
-    // Save attempt result for the result page
-    const attemptResult = {
-      quizId: quiz.id,
-      quizTitle: quiz.title,
-      answers,
-      score,
-      totalQuestions: totalQuestions || 10,
-      timeTaken,
-      completedAt: new Date().toISOString(),
-      timerMode,
-    };
-
-    localStorage.setItem(
-      `quiz_result_${quiz.id}`,
-      JSON.stringify(attemptResult)
-    );
-    localStorage.removeItem(`quiz_answers_${quiz.id}`);
-
-    // Append to global attempt history (for profile page)
     try {
-      const existingHistoryStr = localStorage.getItem("quiz_attempt_history");
-      const history = existingHistoryStr ? JSON.parse(existingHistoryStr) : [];
-      history.unshift({
-        id: "att_" + Date.now(),
-        ...attemptResult,
-      });
-      localStorage.setItem("quiz_attempt_history", JSON.stringify(history));
-    } catch {
-      // ignore
-    }
+      setIsSubmitting(true);
 
-    // Append to this specific quiz's leaderboard so the user immediately ranks on this quiz
-    if (user) {
-      try {
-        const key = `quiz_leaderboard_custom_${quiz.id}`;
-        const existingCustomStr = localStorage.getItem(key);
-        const customEntries = existingCustomStr
-          ? JSON.parse(existingCustomStr)
-          : [];
-        customEntries.push({
-          userId: user.id,
-          userName: user.name,
-          quizId: quiz.id,
-          quizTitle: quiz.title,
-          score,
-          totalQuestions: totalQuestions || 10,
-          timeTaken,
-          completedAt: new Date().toISOString(),
+      // Ensure all selected answers are confirmed persisted before final scoring
+      for (const [qId, optId] of Object.entries(answers)) {
+        if (!optId) continue;
+        const res = await fetch(`/api/attempts/${attempt.id}/answers`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ questionId: qId, optionId: optId }),
         });
-        localStorage.setItem(key, JSON.stringify(customEntries));
-      } catch {
-        // ignore
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || `Failed to save answer for question ${qId}`);
+        }
       }
-    }
 
-    router.push(`/quizzes/${quiz.id}/result`);
-  }, [answers, questions, quiz, router, startTime, timerMode, totalQuestions, user]);
+      const res = await fetch(`/api/attempts/${attempt.id}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Submission failed");
+      }
+
+      // Navigate to server-verified result screen
+      router.push(`/quizzes/${quizId}/result?attemptId=${attempt.id}`);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Submission error. Please try again.");
+      setIsSubmitting(false);
+    }
+  }, [answers, attempt, isSubmitting, quizId, router]);
 
   // Handler when per-question timer runs out
   const handleQuestionTimeUp = useCallback(() => {
-    if (currentIndex < totalQuestions - 1) {
+    if (currentIndex < questions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     } else {
       handleFinishAttempt();
     }
-  }, [currentIndex, totalQuestions, handleFinishAttempt]);
+  }, [currentIndex, questions.length, handleFinishAttempt]);
 
   // Handler when overall quiz timer runs out
   const handleQuizTimeUp = useCallback(() => {
@@ -191,7 +240,13 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
     handleFinishAttempt();
   }, [handleFinishAttempt]);
 
-  // If not authenticated, render the authentication barrier card
+  const currentQuestion = questions[currentIndex];
+  const totalQuestions = questions.length;
+  const answeredCount = Object.keys(answers).length;
+  const progressPercent = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
+  const perQuestionTimeLimit = quiz?.questionTimeLimit || 30;
+
+  // Unauthenticated Barrier Card
   if (!isAuthenticated) {
     return (
       <div
@@ -214,8 +269,7 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
           <div className="space-y-2">
             <h2 className="text-2xl font-[family-name:var(--font-display)] font-extrabold tracking-tight">Login Required</h2>
             <p className="text-sm text-[#0F3D2E]/80 leading-relaxed font-medium">
-              You must be signed in to attempt <span className="font-bold text-[#0F3D2E] bg-[#FFE94A] px-1 py-0.5 rounded border border-[#0F3D2E]">&quot;{quiz.title}&quot;</span>. 
-              Sign in to record your score on the live leaderboard.
+              You must be signed in to attempt this quiz. Sign in to record your verified score on the live leaderboard.
             </p>
           </div>
           <div className="pt-2 flex flex-col gap-3">
@@ -232,6 +286,47 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
             </Link>
           </div>
         </Card>
+      </div>
+    );
+  }
+
+  // Loading State
+  if (loading) {
+    return (
+      <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center bg-[#BDF2D5]">
+        <div className="rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] p-8 shadow-[9px_9px_0_#0F3D2E] text-center max-w-sm">
+          <Loader2 className="h-10 w-10 animate-spin text-[#0F3D2E] mx-auto mb-4" />
+          <h3 className="text-lg font-[family-name:var(--font-display)] font-extrabold text-[#0F3D2E]">
+            Syncing Attempt Engine...
+          </h3>
+          <p className="text-xs text-[#0F3D2E]/70 mt-1 font-medium">
+            Fetching secure questions &amp; restoring your timer...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error State (e.g. Availability window closed or not found)
+  if (error || !quiz) {
+    return (
+      <div className="container mx-auto px-4 py-20 text-center max-w-md my-12 text-[#0F3D2E]">
+        <div className="bg-[#FFFDF5] border-[3px] border-[#0F3D2E] rounded-[18px] shadow-[9px_9px_0_#0F3D2E] p-8">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FFE94A] border-2 border-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E] mb-4">
+            <AlertCircle className="h-7 w-7 text-[#0F3D2E]" />
+          </div>
+          <h2 className="text-2xl font-[family-name:var(--font-display)] font-extrabold mb-2">
+            Quiz Unavailable
+          </h2>
+          <p className="text-sm text-[#0F3D2E]/80 font-medium mb-6">
+            {error || "We could not find or access this quiz."}
+          </p>
+          <Link href="/quizzes">
+            <Button className="bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] font-bold rounded-[10px] shadow-[3px_3px_0_#0F3D2E]">
+              Back to Available Quizzes
+            </Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -267,15 +362,22 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
       }}
     >
       <div className="container mx-auto max-w-4xl">
-        {/* Authentic Quiz Arena Top Bar */}
+        {/* Quiz Arena Top Bar */}
         <div className="mb-4 flex items-center justify-between px-1 text-xs font-bold text-[#0F3D2E]">
           <div className="flex items-center gap-1.5">
             <Flame className="h-4 w-4 text-[#0F3D2E]" />
-            <span>Quiz Arena Session • Verified Contender: <strong className="bg-[#FFE94A] px-1 rounded border border-[#0F3D2E]">{user?.name}</strong></span>
+            <span>
+              Contender: <strong className="bg-[#FFE94A] px-1 rounded border border-[#0F3D2E]">{user?.name}</strong>
+            </span>
+            {isSavingAnswer && (
+              <span className="ml-2 text-xs font-semibold text-[#0F3D2E]/70 animate-pulse">
+                • Saving answer...
+              </span>
+            )}
           </div>
           <div className="hidden sm:flex items-center gap-2">
             <ShieldAlert className="h-4 w-4 text-[#0F3D2E]" />
-            <span>Anti-cheat active • Tab focus monitored</span>
+            <span>Server-Authoritative Timer &amp; Verified Scoring</span>
           </div>
         </div>
 
@@ -331,7 +433,7 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
             {timerMode === "quiz" ? (
               <QuizTimer
                 mode="quiz"
-                initialSeconds={quiz.timeLimit}
+                initialSeconds={remainingTime}
                 onTimeUp={handleQuizTimeUp}
               />
             ) : (
@@ -346,6 +448,7 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
             <Button
               size="sm"
               onClick={() => setIsSubmitDialogOpen(true)}
+              disabled={isSubmitting}
               className="bg-[#0F3D2E] hover:bg-[#FFE94A] hover:text-[#0F3D2E] text-[#FFFDF5] border-2 border-[#0F3D2E] font-bold rounded-[10px] shadow-[3px_3px_0_#0F3D2E] transition-all px-4"
             >
               Finish
@@ -398,15 +501,25 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
           ) : (
             <Button
               onClick={() => setIsSubmitDialogOpen(true)}
+              disabled={isSubmitting}
               className="gap-2 bg-[#FFE94A] hover:bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] font-bold rounded-[12px] shadow-[5px_5px_0_#0F3D2E] transition-all px-5"
             >
-              Submit Quiz
-              <CheckCircle2 className="h-4 w-4" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  Submit Quiz
+                  <CheckCircle2 className="h-4 w-4" />
+                </>
+              )}
             </Button>
           )}
         </div>
 
-        {/* Question palette / Jump grid */}
+        {/* Question overview palette */}
         <div className="mt-8 rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] p-6 shadow-[6px_6px_0_#0F3D2E] text-[#0F3D2E]">
           <div className="text-xs font-bold uppercase tracking-wider text-[#0F3D2E] mb-3">
             Question Overview Palette
@@ -443,7 +556,9 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] shadow-[3px_3px_0_#0F3D2E] mb-3">
               <AlertCircle className="h-7 w-7" />
             </div>
-            <DialogTitle className="text-center text-2xl font-[family-name:var(--font-display)] font-extrabold">Ready to submit?</DialogTitle>
+            <DialogTitle className="text-center text-2xl font-[family-name:var(--font-display)] font-extrabold">
+              Ready to submit?
+            </DialogTitle>
             <DialogDescription className="text-center pt-2 text-[#0F3D2E]/80 font-medium">
               You have answered <span className="font-bold text-[#0F3D2E] bg-[#FFE94A] px-1 rounded">{answeredCount}</span> out of{" "}
               <span className="font-bold text-[#0F3D2E]">{totalQuestions}</span> questions.
@@ -458,6 +573,7 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
             <Button
               variant="outline"
               onClick={() => setIsSubmitDialogOpen(false)}
+              disabled={isSubmitting}
               className="border-2 border-[#0F3D2E] bg-[#FFFDF5] font-bold text-[#0F3D2E] rounded-[10px]"
             >
               Continue Quiz
@@ -467,9 +583,10 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
                 setIsSubmitDialogOpen(false);
                 handleFinishAttempt();
               }}
+              disabled={isSubmitting}
               className="bg-[#FFE94A] hover:bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] font-bold rounded-[10px] shadow-[3px_3px_0_#0F3D2E]"
             >
-              Submit &amp; View Results
+              {isSubmitting ? "Scoring..." : "Submit & View Results"}
             </Button>
           </DialogFooter>
         </DialogContent>

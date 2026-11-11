@@ -34,34 +34,35 @@ export default function IntroGate({
   children,
 }: Props) {
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
-  const [phase, setPhase] = useState<Phase>("check");
+  const [phase, setPhase] = useState<Phase>(() => (once ? "check" : "play"));
 
   useEffect(() => {
     if (!once) {
-      setPhase("play");
       return;
     }
 
-    try {
-      if (hasIntroPlayed || sessionStorage.getItem(STORAGE_KEY) === "1") {
-        hasIntroPlayed = true;
+    queueMicrotask(() => {
+      try {
+        if (hasIntroPlayed || sessionStorage.getItem(STORAGE_KEY) === "1") {
+          hasIntroPlayed = true;
+          setPhase("done");
+          return;
+        }
+      } catch {}
+
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (reduce) {
         setPhase("done");
         return;
       }
-    } catch {}
 
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (reduce) {
-      setPhase("done");
-      return;
-    }
-
-    hasIntroPlayed = true;
-    try {
-      sessionStorage.setItem(STORAGE_KEY, "1");
-    } catch {}
-    setPhase("play");
+      hasIntroPlayed = true;
+      try {
+        sessionStorage.setItem(STORAGE_KEY, "1");
+      } catch {}
+      setPhase("play");
+    });
   }, [once]);
 
   // play -> exit -> done

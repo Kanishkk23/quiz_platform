@@ -44,11 +44,13 @@ export function Navbar() {
   // On "/" it starts hidden at the top so it doesn't collide with the hero's header.
   // On all other pages ("/quizzes", "/leaderboard", etc.), it starts visible.
   const [isVisible, setIsVisible] = useState(pathname !== "/");
+  const [prevPath, setPrevPath] = useState(pathname);
 
   // Keep track of route changes
-  useEffect(() => {
+  if (pathname !== prevPath) {
+    setPrevPath(pathname);
     setIsVisible(pathname !== "/");
-  }, [pathname]);
+  }
 
   // Disappearing navbar logic on scroll
   useEffect(() => {

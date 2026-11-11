@@ -19,11 +19,13 @@ export function QuizTimer({
   questionKey,
 }: QuizTimerProps) {
   const [timeLeft, setTimeLeft] = useState(initialSeconds);
+  const [prevKey, setPrevKey] = useState(questionKey);
 
-  // Reset timer whenever questionKey changes (for per-question timer)
-  useEffect(() => {
+  // Reset timer whenever questionKey changes (for per-question timer) without cascading render effect
+  if (questionKey !== prevKey) {
+    setPrevKey(questionKey);
     setTimeLeft(initialSeconds);
-  }, [questionKey, initialSeconds]);
+  }
 
   useEffect(() => {
     if (isPaused) return;

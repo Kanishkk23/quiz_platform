@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { mockQuizzes } from "@/data/mock";
+import { useState, useMemo, useEffect } from "react";
+import { Quiz } from "@/types";
 import { QuizCard } from "@/components/quiz/QuizCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,16 +13,47 @@ import {
   Trophy,
   Clock,
   Flame,
+  Loader2,
 } from "lucide-react";
 
 const difficulties = ["All", "easy", "medium", "hard"];
+const statuses = ["All", "live", "upcoming", "finished"] as const;
+type StatusFilter = typeof statuses[number];
 
 export default function QuizzesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState("All");
+  const [selectedStatus, setSelectedStatus] = useState<StatusFilter>("All");
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/quizzes")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          setQuizzes(res.data);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load quizzes:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  const counts = useMemo(() => {
+    return {
+      all: quizzes.length,
+      live: quizzes.filter((q) => !q.availability || q.availability === "live").length,
+      upcoming: quizzes.filter((q) => q.availability === "upcoming").length,
+      finished: quizzes.filter((q) => q.availability === "finished").length,
+    };
+  }, [quizzes]);
 
   const filteredQuizzes = useMemo(() => {
-    return mockQuizzes.filter((quiz) => {
+    return quizzes.filter((quiz) => {
       const matchesSearch =
         quiz.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         quiz.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -30,16 +61,22 @@ export default function QuizzesPage() {
       const matchesDifficulty =
         selectedDifficulty === "All" || quiz.difficulty === selectedDifficulty;
 
-      return matchesSearch && matchesDifficulty;
+      const currentStatus = quiz.availability || "live";
+      const matchesStatus =
+        selectedStatus === "All" || currentStatus === selectedStatus;
+
+      return matchesSearch && matchesDifficulty && matchesStatus;
     });
-  }, [searchQuery, selectedDifficulty]);
+  }, [quizzes, searchQuery, selectedDifficulty, selectedStatus]);
 
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedDifficulty("All");
+    setSelectedStatus("All");
   };
 
-  const hasActiveFilters = searchQuery !== "" || selectedDifficulty !== "All";
+  const hasActiveFilters =
+    searchQuery !== "" || selectedDifficulty !== "All" || selectedStatus !== "All";
 
   return (
     <div
@@ -120,13 +157,46 @@ export default function QuizzesPage() {
               )}
             </div>
 
-            {/* Difficulty selector & Clear button */}
+            {/* Status tabs & Difficulty selector & Clear button */}
             <div className="flex flex-wrap items-center gap-3">
+              {/* Status filter */}
+              <div className="flex rounded-[10px] border-2 border-[#0F3D2E] bg-[#E3F9EE] p-1 text-xs">
+                {statuses.map((st) => {
+                  const count =
+                    st === "All"
+                      ? counts.all
+                      : st === "live"
+                      ? counts.live
+                      : st === "upcoming"
+                      ? counts.upcoming
+                      : counts.finished;
+                  const label =
+                    st === "All"
+                      ? `All (${count})`
+                      : st === "live"
+                      ? `Live (${count})`
+                      : st === "upcoming"
+                      ? `Upcoming (${count})`
+                      : `Ended (${count})`;
+                  return (
+                    <button
+                      key={st}
+                      onClick={() => setSelectedStatus(st)}
+                      className={`rounded-[7px] px-2.5 py-1 text-xs font-bold transition-all ${
+                        selectedStatus === st
+                          ? "bg-[#FFE94A] text-[#0F3D2E] border border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]"
+                          : "text-[#0F3D2E]/70 hover:text-[#0F3D2E]"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Difficulty selector */}
               <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-[#0F3D2E] hidden sm:block" />
-                <span className="text-xs font-bold uppercase tracking-wider text-[#0F3D2E] hidden sm:block">
-                  Difficulty:
-                </span>
+                <Filter className="h-4 w-4 text-[#0F3D2E] hidden lg:block" />
                 <div className="flex rounded-[10px] border-2 border-[#0F3D2E] bg-[#E3F9EE] p-1 text-xs">
                   {difficulties.map((diff) => (
                     <button
@@ -152,7 +222,7 @@ export default function QuizzesPage() {
                   className="h-8 text-xs font-bold text-[#E5484D] hover:bg-[#E5484D]/10 gap-1 rounded-[8px]"
                 >
                   <X className="h-3.5 w-3.5" />
-                  Reset filters
+                  Reset
                 </Button>
               )}
             </div>
@@ -160,7 +230,12 @@ export default function QuizzesPage() {
         </div>
 
         {/* Quizzes Grid */}
-        {filteredQuizzes.length > 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-[#0F3D2E]">
+            <Loader2 className="h-10 w-10 animate-spin text-[#0F3D2E] mb-3" />
+            <p className="text-sm font-bold">Loading live quizzes from database...</p>
+          </div>
+        ) : filteredQuizzes.length > 0 ? (
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {filteredQuizzes.map((quiz) => (
               <QuizCard key={quiz.id} quiz={quiz} />
@@ -169,12 +244,12 @@ export default function QuizzesPage() {
         ) : (
           <div className="rounded-[18px] border-[3px] border-dashed border-[#0F3D2E] bg-[#FFFDF5] p-12 text-center text-[#0F3D2E] shadow-[5px_5px_0_#0F3D2E]">
             <h3 className="text-xl font-[family-name:var(--font-display)] font-extrabold mb-2">
-              {mockQuizzes.length === 0 ? "No quizzes available yet" : "No quizzes found"}
+              No quizzes found
             </h3>
             <p className="text-sm font-medium text-[#0F3D2E]/70 mb-5">
-              {mockQuizzes.length === 0
-                ? "Quizzes will appear here once published from the database."
-                : "Try adjusting your search query or difficulty filter."}
+              {hasActiveFilters
+                ? "Try adjusting your search query or difficulty filter."
+                : "No published quizzes are currently available in the database."}
             </p>
             {hasActiveFilters && (
               <Button
