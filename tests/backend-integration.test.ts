@@ -2,6 +2,10 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import {
+  assignCompetitionRanks,
+  selectBestAttempts,
+} from '../src/services/leaderboard.service.ts';
 
 const schema = readFileSync(resolve('supabase/schema.sql'), 'utf8');
 const policies = readFileSync(resolve('supabase/policies.sql'), 'utf8');
@@ -68,43 +72,34 @@ describe('Backend database integration and security contracts', () => {
     });
   });
 
-  describe('Leaderboard and scoring behavior', () => {
-    test('keeps one best score per user using score then time ordering', () => {
+  describe('Production leaderboard behavior', () => {
+    test('selects the best attempt when a worse attempt appears first', () => {
       const scores = [
-        { userId: 'bob', score: 10, time: 45 },
-        { userId: 'alice', score: 10, time: 50 },
-        { userId: 'bob', score: 8, time: 20 },
+        { id: 'bob-worse', user_id: 'bob', score: 6, time_taken_seconds: 20, submitted_at: '2026-01-02', },
+        { id: 'alice', user_id: 'alice', score: 8, time_taken_seconds: 50, submitted_at: '2026-01-01', },
+        { id: 'bob-best', user_id: 'bob', score: 10, time_taken_seconds: 90, submitted_at: '2026-01-03', },
       ];
-      const best = scores.filter(
-        (score, index, entries) =>
-          entries.findIndex((candidate) => candidate.userId === score.userId) === index
-      );
 
-      assert.deepEqual(best, [
-        { userId: 'bob', score: 10, time: 45 },
-        { userId: 'alice', score: 10, time: 50 },
-      ]);
+      const best = selectBestAttempts(scores);
+
+      assert.deepEqual(best.map(({ id }) => id), ['bob-best', 'alice']);
+      assert.equal(best[0].score, 10);
     });
 
-    test('assigns competition ranks for tied score and time results', () => {
-      const ordered = [
-        { score: 10, time: 40 },
-        { score: 10, time: 40 },
-        { score: 8, time: 30 },
+    test('sorts unsorted results and assigns production competition ranks', () => {
+      const scores = [
+        { id: 'third', user_id: 'third', score: 8, time_taken_seconds: 30, submitted_at: '2026-01-03' },
+        { id: 'second', user_id: 'second', score: 10, time_taken_seconds: 40, submitted_at: '2026-01-02' },
+        { id: 'first', user_id: 'first', score: 10, time_taken_seconds: 40, submitted_at: '2026-01-01' },
       ];
-      const ranks: number[] = [];
-      ordered.forEach((entry, index) => {
-        const firstMatchingIndex = ordered.findIndex(
-          (candidate) => candidate.score === entry.score && candidate.time === entry.time
-        );
-        ranks.push(index > 0 &&
-          ordered[index - 1].score === entry.score &&
-          ordered[index - 1].time === entry.time
-          ? ranks[index - 1]
-          : firstMatchingIndex + 1);
-      });
 
-      assert.deepEqual(ranks, [1, 1, 3]);
+      const ranked = assignCompetitionRanks(selectBestAttempts(scores));
+
+      assert.deepEqual(ranked.map(({ id, rank }) => ({ id, rank })), [
+        { id: 'first', rank: 1 },
+        { id: 'second', rank: 1 },
+        { id: 'third', rank: 3 },
+      ]);
     });
   });
 
