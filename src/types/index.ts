@@ -7,6 +7,12 @@ export interface User {
   avatarUrl?: string;
 }
 
+export type UserRole =
+  | "super_admin"
+  | "quiz_admin"
+  | "quiz_host"
+  | "participant";
+
 export interface Quiz {
   id: string;
   title: string;
