@@ -18,7 +18,9 @@ attempt them, review their results, and compete on live leaderboards.
 - Answer selection, submission, and unanswered-question handling
 - Results view with score, answer review, and explanations
 - Per-quiz leaderboards with score and completion-time tie-breaks
-- Profile page with user information and quiz performance
+- Best-attempt leaderboard standings with competition ranking for ties
+- Realtime leaderboard refreshes after submitted scores change
+- Profile history with aggregate and best-attempt statistics
 - Responsive navigation, footer, and mobile-friendly layouts
 
 ### Database foundation
@@ -32,6 +34,8 @@ attempt them, review their results, and compete on live leaderboards.
 - Row-level security for profile, quiz, question, attempt, answer, and score data
 - Answer-key protection while a quiz is in progress
 - Development fixtures for upcoming, live, and finished quizzes
+- Backend integration and security tests for database constraints, RLS,
+  answer-key protection, attempts, scoring, ranking, and API authorization
 
 ## Tech stack
 
@@ -138,13 +142,56 @@ supabase/
 └── README.md             # Database setup and acceptance checks
 ```
 
+## Backend API
+
+The App Router API uses authenticated Supabase sessions and returns a
+consistent `{ success, data, error }` response shape:
+
+| Route | Purpose |
+|---|---|
+| `GET /api/quizzes` | List published quizzes and availability |
+| `GET /api/quizzes/:id` | Load a quiz with safe question options |
+| `POST /api/attempts` | Start or resume an authenticated attempt |
+| `GET /api/attempts/:id` | Restore the owner's attempt state |
+| `POST /api/attempts/:id/answers` | Save, update, or clear an answer |
+| `POST /api/attempts/:id/submit` | Submit and score an attempt |
+| `GET /api/attempts/:id/review` | Retrieve the owner's submitted review |
+| `GET /api/quizzes/:id/leaderboard` | Read best-attempt standings |
+| `GET /api/profile/attempts` | Read the authenticated user's history |
+
+Attempt and profile routes enforce authenticated ownership. Answer keys and
+explanations are withheld during an active attempt and are revealed only by
+the submitted-review flow. The leaderboard client refreshes its API data when
+Supabase Realtime reports a score change and cleans up the subscription when
+the selected quiz changes.
+
+Shared backend helpers include authenticated-user and role guards,
+standardized API errors, response wrappers, shared attempt/result types, and
+the backend integration contract suite.
+
 ## Useful commands
 
 ```bash
 npm run dev       # Start the development server
 npm run lint      # Run ESLint
+npm test          # Run attempt and backend integration/security tests
 npm run build     # Create a production build
 ```
+
+### Backend verification
+
+The test suite includes:
+
+- Attempt recovery, answer persistence, expiry, retakes, and idempotent submission
+- Server-side scoring and answer-key protection
+- Ownership and Row Level Security contract checks
+- Published-quiz locking and answer-key integrity constraints
+- Best-attempt leaderboard deduplication and score/time ranking
+- Submitted-review authorization and API authentication contracts
+
+The database contract tests read the checked-in Supabase SQL files. For a live
+database check, run the scripts in the Supabase SQL Editor as described above,
+then verify the acceptance checks in [`supabase/README.md`](./supabase/README.md).
 
 ## Contributing
 
