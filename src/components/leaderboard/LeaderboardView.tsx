@@ -50,21 +50,6 @@ const CONFETTI = [
 
 const entryKey = (e: LeaderboardEntry) => `${e.userId}_${e.timeTaken}`;
 
-function isStoredEntryForQuiz(entry: unknown, quizId: string): entry is LeaderboardEntry {
-  if (typeof entry !== "object" || entry === null) return false;
-  const value = entry as Record<string, unknown>;
-
-  return (
-    typeof value.userId === "string" &&
-    typeof value.userName === "string" &&
-    value.quizId === quizId &&
-    typeof value.score === "number" &&
-    typeof value.totalQuestions === "number" &&
-    typeof value.timeTaken === "number" &&
-    typeof value.completedAt === "string"
-  );
-}
-
 const formatTime = (seconds: number) => {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
@@ -177,55 +162,41 @@ export function LeaderboardView() {
   }, [selectedQuizId]);
 
   useEffect(() => {
-    let entries: LeaderboardEntry[] = [];
+    let active = true;
 
-    try {
-      const customStr = window.localStorage.getItem(
-        `quiz_leaderboard_custom_${selectedQuizId}`
-      );
-      if (customStr) {
-        const parsed: unknown = JSON.parse(customStr);
-        if (!Array.isArray(parsed)) {
-          console.error("Stored leaderboard data must be an array.");
-        } else {
-          entries = parsed.filter((entry) =>
-            isStoredEntryForQuiz(entry, selectedQuizId)
-          );
-          if (entries.length !== parsed.length) {
-            console.error("Invalid stored leaderboard entries were ignored.");
-          }
+    async function loadLeaderboard() {
+      try {
+        const res = await fetch(`/api/quizzes/${selectedQuizId}/leaderboard`);
+        const json = await res.json();
+        if (active && res.ok && json.success && Array.isArray(json.data)) {
+          setStoredEntries({ quizId: selectedQuizId, entries: json.data });
         }
+      } catch (err) {
+        console.error("Failed to load leaderboard from database:", err);
       }
-    } catch (error) {
-      console.error("Could not load saved leaderboard entries.", error);
     }
 
-    let active = true;
-    queueMicrotask(() => {
-      if (active) setStoredEntries({ quizId: selectedQuizId, entries });
-    });
+    if (selectedQuizId) {
+      loadLeaderboard();
+    }
 
     return () => {
       active = false;
     };
   }, [selectedQuizId]);
 
-  // Combine mock leaderboard entries with attempts saved on this device.
+  // Read authoritative leaderboard entries directly from database
   const currentQuizEntries = useMemo(() => {
-    const baseEntries = initialLeaderboard.filter((entry) => entry.quizId === selectedQuizId);
-    const quizEntries =
+    const dbEntries =
       storedEntries.quizId === selectedQuizId ? storedEntries.entries : [];
-    const combined = [...baseEntries, ...quizEntries];
 
-    // Sort by score desc, then by timeTaken asc (faster time wins the tiebreaker)
-    combined.sort((a, b) => {
-      if (b.score !== a.score) {
-        return b.score - a.score;
-      }
-      return a.timeTaken - b.timeTaken;
-    });
+    if (dbEntries.length > 0) {
+      return dbEntries.map((entry, index) => ({ ...entry, rank: index + 1 }));
+    }
 
-    return combined.map((entry, index) => ({ ...entry, rank: index + 1 }));
+    // Default fixtures if no submitted scores yet for this quiz
+    const baseEntries = initialLeaderboard.filter((entry) => entry.quizId === selectedQuizId);
+    return baseEntries.map((entry, index) => ({ ...entry, rank: index + 1 }));
   }, [selectedQuizId, storedEntries]);
 
   // Towers glide to their new places when the ranking changes

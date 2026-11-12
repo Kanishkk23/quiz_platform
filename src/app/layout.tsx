@@ -43,7 +43,7 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "QuizPlatform — Test Your Knowledge",
+  title: "Quizora — Test Your Knowledge",
   description:
     "An interactive quiz platform to challenge yourself, learn something new, and compete with others on the leaderboard.",
 };
@@ -63,6 +63,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} ${display.variable} ${body.variable} ${hand.variable} ${mono.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col overflow-x-hidden selection:bg-[#FFE94A] selection:text-[#0F3D2E] bg-[#BDF2D5] text-[#0F3D2E] font-sans">

@@ -7,12 +7,11 @@ data for Quizora-B.
 
 Run the scripts in this order in the Supabase SQL Editor:
 
-1. `schema.sql`
-2. `policies.sql`
-3. `seed.sql`
+1. `schema.sql` — core schema, tables, constraints, unique active attempt index, triggers, and Realtime publication.
+2. `policies.sql` — row-level security, grants, answer-key protection, atomic submission procedure (`submit_quiz_attempt()`), and secure solution review (`get_submitted_quiz_review()`).
+3. `seed.sql` or `seed_10_quizzes.sql` — repeatable development fixtures.
 
-The schema and policies must be applied before the seed script. Run these scripts
-only in a development or test Supabase project, not in production.
+The schema and policies must be applied before the seed script. `policies.sql` automatically creates and grants execution on `submit_quiz_attempt()` and `get_submitted_quiz_review()` to authenticated users. Run these scripts only in a development or test Supabase project, not in production.
 
 ## Seed data
 

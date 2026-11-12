@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import AnswerDeckIntro from "./AnswerDeckIntro";
 import QuizCubeIntro from "./QuizCubeIntro";
 import styles from "./IntroGate.module.css";
@@ -25,6 +25,7 @@ const EXIT_MS = 900;
 
 // In-memory session tracker to prevent intro from replaying on client-side navigation back to Home
 let hasIntroPlayed = false;
+const emptySubscribe = () => () => {};
 
 export default function IntroGate({
   variant = "deck",
@@ -32,34 +33,36 @@ export default function IntroGate({
   logoSrc,
   children,
 }: Props) {
-  const [phase, setPhase] = useState<Phase>("check");
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const [phase, setPhase] = useState<Phase>(() => (once ? "check" : "play"));
 
   useEffect(() => {
     if (!once) {
-      setPhase("play");
       return;
     }
 
-    try {
-      if (hasIntroPlayed || sessionStorage.getItem(STORAGE_KEY) === "1") {
-        hasIntroPlayed = true;
+    queueMicrotask(() => {
+      try {
+        if (hasIntroPlayed || sessionStorage.getItem(STORAGE_KEY) === "1") {
+          hasIntroPlayed = true;
+          setPhase("done");
+          return;
+        }
+      } catch {}
+
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (reduce) {
         setPhase("done");
         return;
       }
-    } catch {}
 
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (reduce) {
-      setPhase("done");
-      return;
-    }
-
-    hasIntroPlayed = true;
-    try {
-      sessionStorage.setItem(STORAGE_KEY, "1");
-    } catch {}
-    setPhase("play");
+      hasIntroPlayed = true;
+      try {
+        sessionStorage.setItem(STORAGE_KEY, "1");
+      } catch {}
+      setPhase("play");
+    });
   }, [once]);
 
   // play -> exit -> done
@@ -85,7 +88,7 @@ export default function IntroGate({
   }, [phase, variant]);
 
   // Lock page scroll while the intro is on screen
-  const active = phase === "play" || phase === "exit";
+  const active = mounted && (phase === "play" || phase === "exit");
   useEffect(() => {
     if (!active) return;
     const prev = document.documentElement.style.overflow;
@@ -112,7 +115,7 @@ export default function IntroGate({
   return (
     <>
       {children}
-      {phase !== "done" && (
+      {mounted && phase !== "done" && (
         <div
           className={`${styles.overlay} ${phase === "exit" ? styles.exit : ""}`}
           role="presentation"
