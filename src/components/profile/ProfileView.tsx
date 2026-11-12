@@ -71,12 +71,18 @@ export function ProfileView() {
   // Stats computation
   const totalAttempts = history.length;
   const totalScore = history.reduce((acc, curr) => acc + curr.score, 0);
-  const totalPossible = history.reduce((acc, curr) => acc + curr.totalQuestions, 0);
+  const totalPossible = history.reduce(
+    (acc, curr) => acc + (curr.totalPoints ?? curr.totalQuestions),
+    0
+  );
   const averagePercentage =
     totalPossible > 0 ? Math.round((totalScore / totalPossible) * 100) : 0;
 
   const bestScore = history.reduce(
-    (max, curr) => Math.max(max, Math.round((curr.score / curr.totalQuestions) * 100)),
+    (max, curr) => {
+      const total = curr.totalPoints ?? curr.totalQuestions;
+      return Math.max(max, total > 0 ? Math.round((curr.score / total) * 100) : 0);
+    },
     0
   );
 

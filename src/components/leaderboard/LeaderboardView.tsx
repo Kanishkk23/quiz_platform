@@ -6,6 +6,7 @@ import {
   useEffect,
   useLayoutEffect,
   useRef,
+  useCallback,
   type CSSProperties,
 } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -26,6 +27,7 @@ import {
 import { Trophy, Clock, Search, ArrowRight, Zap, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { LeaderboardMotionPreview } from "@/components/leaderboard/LeaderboardMotionPreview";
+import { createClient } from "@/lib/client";
 
 // One style per tower, 1st to 5th
 const TOWER_STYLES = [
@@ -127,6 +129,7 @@ export function LeaderboardView() {
     quizId: string;
     entries: LeaderboardEntry[];
   }>({ quizId: selectedQuizId, entries: [] });
+  const supabase = useMemo(() => createClient(), []);
 
   const loadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const itemRefs = useRef(new Map<string, HTMLLIElement>());
@@ -161,29 +164,50 @@ export function LeaderboardView() {
     );
   }, [selectedQuizId]);
 
+  const loadLeaderboard = useCallback(async (isActive?: () => boolean) => {
+    try {
+      const res = await fetch(`/api/quizzes/${selectedQuizId}/leaderboard`);
+      const json = await res.json();
+      if ((!isActive || isActive()) && res.ok && json.success && Array.isArray(json.data)) {
+        setStoredEntries({ quizId: selectedQuizId, entries: json.data });
+      }
+    } catch (err) {
+      console.error("Failed to load leaderboard from database:", err);
+    }
+  }, [selectedQuizId]);
+
   useEffect(() => {
     let active = true;
 
-    async function loadLeaderboard() {
-      try {
-        const res = await fetch(`/api/quizzes/${selectedQuizId}/leaderboard`);
-        const json = await res.json();
-        if (active && res.ok && json.success && Array.isArray(json.data)) {
-          setStoredEntries({ quizId: selectedQuizId, entries: json.data });
-        }
-      } catch (err) {
-        console.error("Failed to load leaderboard from database:", err);
-      }
+    async function refreshLeaderboard() {
+      await loadLeaderboard(() => active);
     }
 
     if (selectedQuizId) {
-      loadLeaderboard();
+      void refreshLeaderboard();
     }
+
+    const channel = supabase
+      .channel(`leaderboard:${selectedQuizId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "scores",
+          filter: `quiz_id=eq.${selectedQuizId}`,
+        },
+        () => {
+          loadLeaderboard(() => active);
+        }
+      )
+      .subscribe();
 
     return () => {
       active = false;
+      void supabase.removeChannel(channel);
     };
-  }, [selectedQuizId]);
+  }, [loadLeaderboard, selectedQuizId, supabase]);
 
   // Read authoritative leaderboard entries directly from database
   const currentQuizEntries = useMemo(() => {
@@ -191,7 +215,7 @@ export function LeaderboardView() {
       storedEntries.quizId === selectedQuizId ? storedEntries.entries : [];
 
     if (dbEntries.length > 0) {
-      return dbEntries.map((entry, index) => ({ ...entry, rank: index + 1 }));
+      return dbEntries;
     }
 
     // Default fixtures if no submitted scores yet for this quiz
