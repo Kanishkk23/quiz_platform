@@ -57,29 +57,6 @@ export function QuizResultView({ quizId }: QuizResultViewProps) {
             return;
           }
         }
-
-        // Fallback: check localStorage for legacy/offline cached attempt
-        const stored = localStorage.getItem(`quiz_result_${quizId}`);
-        if (!isCancelled && stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            setReview({
-              attemptId: parsed.attemptId || "cached",
-              quizId,
-              userId: "user",
-              score: parsed.score || 0,
-              totalPoints: (parsed.totalQuestions || 10) * 2,
-              timeTakenSeconds: parsed.timeTaken || 0,
-              submittedAt: parsed.completedAt || new Date().toISOString(),
-              totalQuestions: parsed.totalQuestions || 10,
-              correctCount: parsed.score || 0,
-              percentage: Math.round(((parsed.score || 0) / (parsed.totalQuestions || 10)) * 100),
-              questions: [],
-            });
-          } catch {
-            // ignore
-          }
-        }
       } catch {
         // ignore
       } finally {

@@ -20,8 +20,6 @@ import {
   ArrowRight,
   CheckCircle2,
   AlertCircle,
-  Clock,
-  Hourglass,
   Lock,
   Flame,
   ShieldAlert,
@@ -52,9 +50,10 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingAnswer, setIsSavingAnswer] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [unsavedQuestionIds, setUnsavedQuestionIds] = useState<Set<string>>(new Set());
 
-  // Timer mode state: can be per-quiz (overall) or per-question
-  const [timerMode, setTimerMode] = useState<"quiz" | "question">("quiz");
+  // Server-authoritative remaining time (in seconds)
   const [remainingTime, setRemainingTime] = useState<number>(600);
 
   // Load quiz data and create/restore attempt from Supabase
@@ -153,9 +152,10 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
     };
   }, [quizId, isAuthenticated, isRetake, router]);
 
-  // Handle option selection with immediate optimistic UI and background auto-save
+  // Handle option selection with immediate optimistic UI and explicit error surfacing
   const handleSelectOption = async (optionId: string) => {
     if (!currentQuestion || !attempt) return;
+    setSaveError(null);
 
     // 1. Optimistic local update
     const updated = {
@@ -177,10 +177,19 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        console.error("Save answer failed:", data);
+        throw new Error(data.error || "Failed to persist answer");
       }
-    } catch (err) {
-      console.error("Save answer network error:", err);
+      // Successfully saved to server: clear from unsaved tracking
+      setUnsavedQuestionIds((prev) => {
+        const next = new Set(prev);
+        next.delete(currentQuestion.id);
+        return next;
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Network error";
+      console.error("Save answer failed:", err);
+      setSaveError(`Failed to save answer for Question ${currentIndex + 1}: ${message}. Please re-select or check connection.`);
+      setUnsavedQuestionIds((prev) => new Set(prev).add(currentQuestion.id));
     } finally {
       setIsSavingAnswer(false);
     }
@@ -190,8 +199,16 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
   const handleFinishAttempt = useCallback(async () => {
     if (!attempt || isSubmitting) return;
 
+    if (unsavedQuestionIds.size > 0) {
+      const msg = `Cannot submit: Answers for ${unsavedQuestionIds.size} question(s) failed to save to server. Please re-select them before submitting.`;
+      setSaveError(msg);
+      alert(msg);
+      return;
+    }
+
     try {
       setIsSubmitting(true);
+      setSaveError(null);
 
       // Ensure all selected answers are confirmed persisted before final scoring
       for (const [qId, optId] of Object.entries(answers)) {
@@ -220,19 +237,12 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
       // Navigate to server-verified result screen
       router.push(`/quizzes/${quizId}/result?attemptId=${attempt.id}`);
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Submission error. Please try again.");
+      const msg = err instanceof Error ? err.message : "Submission error. Please try again.";
+      setSaveError(msg);
+      alert(msg);
       setIsSubmitting(false);
     }
-  }, [answers, attempt, isSubmitting, quizId, router]);
-
-  // Handler when per-question timer runs out
-  const handleQuestionTimeUp = useCallback(() => {
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    } else {
-      handleFinishAttempt();
-    }
-  }, [currentIndex, questions.length, handleFinishAttempt]);
+  }, [answers, attempt, isSubmitting, quizId, router, unsavedQuestionIds]);
 
   // Handler when overall quiz timer runs out
   const handleQuizTimeUp = useCallback(() => {
@@ -244,7 +254,6 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
   const totalQuestions = questions.length;
   const answeredCount = Object.keys(answers).length;
   const progressPercent = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
-  const perQuestionTimeLimit = quiz?.questionTimeLimit || 30;
 
   // Unauthenticated Barrier Card
   if (!isAuthenticated) {
@@ -399,62 +408,37 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
           </div>
 
           <div className="flex flex-wrap items-center justify-between sm:justify-end gap-3">
-            {/* Timer mode switcher pill */}
-            <div className="flex items-center rounded-[10px] border-2 border-[#0F3D2E] bg-[#E3F9EE] p-1 text-xs">
-              <button
-                type="button"
-                onClick={() => setTimerMode("quiz")}
-                className={`flex items-center gap-1 rounded-[7px] px-2.5 py-1 font-bold transition-all ${
-                  timerMode === "quiz"
-                    ? "bg-[#FFE94A] text-[#0F3D2E] border border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]"
-                    : "text-[#0F3D2E]/70 hover:text-[#0F3D2E]"
-                }`}
-                title="Timer counts down total quiz duration"
-              >
-                <Clock className="h-3 w-3" />
-                <span className="hidden sm:inline">Quiz</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setTimerMode("question")}
-                className={`flex items-center gap-1 rounded-[7px] px-2.5 py-1 font-bold transition-all ${
-                  timerMode === "question"
-                    ? "bg-[#FFE94A] text-[#0F3D2E] border border-[#0F3D2E] shadow-[2px_2px_0_#0F3D2E]"
-                    : "text-[#0F3D2E]/70 hover:text-[#0F3D2E]"
-                }`}
-                title="Timer counts down 30s per question"
-              >
-                <Hourglass className="h-3 w-3" />
-                <span className="hidden sm:inline">Per Question</span>
-              </button>
-            </div>
-
-            {/* Active Timer */}
-            {timerMode === "quiz" ? (
-              <QuizTimer
-                mode="quiz"
-                initialSeconds={remainingTime}
-                onTimeUp={handleQuizTimeUp}
-              />
-            ) : (
-              <QuizTimer
-                mode="question"
-                questionKey={currentIndex}
-                initialSeconds={perQuestionTimeLimit}
-                onTimeUp={handleQuestionTimeUp}
-              />
-            )}
+            {/* Server-Authoritative Quiz Countdown Timer */}
+            <QuizTimer
+              mode="quiz"
+              initialSeconds={remainingTime}
+              onTimeUp={handleQuizTimeUp}
+            />
 
             <Button
               size="sm"
               onClick={() => setIsSubmitDialogOpen(true)}
-              disabled={isSubmitting}
-              className="bg-[#0F3D2E] hover:bg-[#FFE94A] hover:text-[#0F3D2E] text-[#FFFDF5] border-2 border-[#0F3D2E] font-bold rounded-[10px] shadow-[3px_3px_0_#0F3D2E] transition-all px-4"
+              disabled={isSubmitting || unsavedQuestionIds.size > 0}
+              className="bg-[#0F3D2E] hover:bg-[#FFE94A] hover:text-[#0F3D2E] text-[#FFFDF5] border-2 border-[#0F3D2E] font-bold rounded-[10px] shadow-[3px_3px_0_#0F3D2E] transition-all px-4 disabled:opacity-50"
             >
               Finish
             </Button>
           </div>
         </div>
+
+        {/* Answer save failure banner */}
+        {saveError && (
+          <div className="mb-4 rounded-[12px] border-2 border-[#E5484D] bg-[#FFEAEA] p-3 text-xs font-bold text-[#E5484D] flex items-center justify-between shadow-[3px_3px_0_#E5484D]">
+            <span>⚠️ {saveError}</span>
+            <button
+              type="button"
+              onClick={() => setSaveError(null)}
+              className="ml-3 underline hover:opacity-80 shrink-0 font-extrabold"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* Progress bar */}
         <div className="mb-6 space-y-2">

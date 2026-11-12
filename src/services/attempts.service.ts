@@ -64,19 +64,22 @@ export class AttemptsService {
 
     const questionsCount = totalQuestions ?? 0;
 
-    // 3. Check for an existing in_progress attempt unless forceRetake is requested
-    if (!forceRetake) {
-      const { data: existingAttempt } = await supabase
-        .from('attempts')
-        .select('*')
-        .eq('quiz_id', quizId)
-        .eq('user_id', user.id)
-        .eq('status', 'in_progress')
-        .order('started_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+    // 3. Check for an existing in_progress attempt (enforce strictly at most 1 active attempt)
+    const { data: existingAttempt } = await supabase
+      .from('attempts')
+      .select('*')
+      .eq('quiz_id', quizId)
+      .eq('user_id', user.id)
+      .eq('status', 'in_progress')
+      .order('started_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-      if (existingAttempt) {
+    if (existingAttempt) {
+      if (forceRetake) {
+        // Enforce single active attempt: finalize previous in-progress attempt before creating retake
+        await this.submitAttempt(existingAttempt.id);
+      } else {
         // Calculate server remaining time
         const startedTime = new Date(existingAttempt.started_at).getTime();
         const elapsedSeconds = Math.max(0, Math.floor((now.getTime() - startedTime) / 1000));
@@ -86,7 +89,7 @@ export class AttemptsService {
         // If time expired, auto-submit the attempt
         if (isExpired) {
           await this.submitAttempt(existingAttempt.id);
-          // If user still wants to take the quiz, continue below to start a retake or report finished
+          // Continues below to start a fresh attempt
         } else {
           // Fetch previously saved answers for attempt recovery
           const { data: savedAnswersList } = await supabase
@@ -296,12 +299,25 @@ export class AttemptsService {
     const answeredAt = new Date().toISOString();
 
     if (optionId === null) {
-      // Clear answer if optionId is null
-      await supabase
+      // Clear answer through an authorized UPDATE setting option_id to null
+      // Matches GRANT UPDATE (option_id) ON TABLE public.answers TO authenticated
+      const { data: existingAnswer } = await supabase
         .from('answers')
-        .delete()
+        .select('id')
         .eq('attempt_id', attemptId)
-        .eq('question_id', questionId);
+        .eq('question_id', questionId)
+        .maybeSingle();
+
+      if (existingAnswer) {
+        const { error: updateError } = await supabase
+          .from('answers')
+          .update({ option_id: null })
+          .eq('id', existingAnswer.id);
+
+        if (updateError) {
+          throw new Error(`Failed to clear answer: ${updateError.message}`);
+        }
+      }
 
       return { success: true, questionId, optionId: null, answeredAt };
     }

@@ -21,7 +21,6 @@ import {
   Calendar,
   ArrowRight,
   BookOpen,
-  Trash2,
   CheckCircle2,
 } from "lucide-react";
 
@@ -29,11 +28,13 @@ interface AttemptRecord {
   id: string;
   quizId: string;
   quizTitle: string;
+  category?: string;
   score: number;
+  totalPoints?: number;
   totalQuestions: number;
   timeTaken: number;
   completedAt: string;
-  timerMode?: "quiz" | "question";
+  percentage?: number;
 }
 
 const emptySubscribe = () => () => {};
@@ -44,22 +45,28 @@ export function ProfileView() {
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   useEffect(() => {
-    queueMicrotask(() => {
-      try {
-        const stored = localStorage.getItem("quiz_attempt_history");
-        if (stored) {
-          setHistory(JSON.parse(stored));
-        }
-      } catch {
-        // ignore
-      }
-    });
-  }, []);
+    let active = true;
 
-  const clearHistory = () => {
-    localStorage.removeItem("quiz_attempt_history");
-    setHistory([]);
-  };
+    async function fetchAttempts() {
+      try {
+        const res = await fetch("/api/profile/attempts");
+        const json = await res.json();
+        if (active && res.ok && json.success && Array.isArray(json.data)) {
+          setHistory(json.data);
+        }
+      } catch (err) {
+        console.error("Failed to load profile attempts:", err);
+      }
+    }
+
+    if (isAuthenticated) {
+      fetchAttempts();
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [isAuthenticated]);
 
   // Stats computation
   const totalAttempts = history.length;
@@ -239,17 +246,9 @@ export function ProfileView() {
               </p>
             </div>
 
-            {history.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearHistory}
-                className="text-xs font-bold text-[#E5484D] hover:bg-[#E5484D]/10 gap-1.5 rounded-[8px]"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Clear History
-              </Button>
-            )}
+            <span className="text-xs font-bold text-[#0F3D2E] bg-[#E3F9EE] border border-[#0F3D2E] px-2.5 py-1 rounded-full shadow-[2px_2px_0_#0F3D2E]">
+              ● Database Verified
+            </span>
           </div>
         </div>
 
@@ -267,14 +266,14 @@ export function ProfileView() {
             </TableHeader>
             <TableBody>
               {history.map((record) => {
-                const percentage = Math.round((record.score / record.totalQuestions) * 100);
+                const percentage = record.percentage ?? Math.round((record.score / record.totalQuestions) * 100);
 
                 return (
                   <TableRow key={record.id} className="transition-colors hover:bg-[#E3F9EE]/40 border-b border-[#0F3D2E]/20">
                     <TableCell>
                       <div className="font-bold text-sm text-[#0F3D2E]">{record.quizTitle}</div>
                       <div className="text-xs text-[#0F3D2E]/70 font-medium flex items-center gap-2 mt-0.5">
-                        <span className="capitalize">{record.timerMode || "Quiz"} Timer</span>
+                        <span className="capitalize">{record.category || "General"}</span>
                         <span className="sm:hidden">&bull; {formatDate(record.completedAt)}</span>
                       </div>
                     </TableCell>
@@ -306,7 +305,7 @@ export function ProfileView() {
                     </TableCell>
 
                     <TableCell className="text-right pr-6">
-                      <Link href={`/quizzes/${record.quizId}/result`}>
+                      <Link href={`/quizzes/${record.quizId}/result?attemptId=${record.id}`}>
                         <Button
                           size="sm"
                           className="h-8 gap-1 text-xs bg-[#FFE94A] hover:bg-[#FFE94A]/90 text-[#0F3D2E] font-bold border border-[#0F3D2E] rounded-[6px] shadow-[2px_2px_0_#0F3D2E]"

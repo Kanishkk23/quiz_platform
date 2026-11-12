@@ -80,8 +80,8 @@ The SQL scripts in `supabase/` are intended for a development or test project.
 Run them in the Supabase SQL Editor in this order:
 
 1. `schema.sql` — tables, constraints, triggers, indexes, and Realtime setup
-2. `policies.sql` — row-level security, grants, and answer-key protection
-3. `seed.sql` — repeatable development fixtures
+2. `policies.sql` — row-level security, grants, answer-key protection, `submit_quiz_attempt()`, and `get_submitted_quiz_review()`
+3. `seed.sql` or `seed_10_quizzes.sql` — repeatable development fixtures (including 10 comprehensive quizzes with live, upcoming, and finished states)
 
 The seed script creates upcoming, live, and finished quiz examples. Read
 [`supabase/README.md`](./supabase/README.md) for the seed details and acceptance

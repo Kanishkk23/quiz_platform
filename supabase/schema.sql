@@ -100,6 +100,9 @@ CREATE INDEX IF NOT EXISTS idx_attempts_user
   ON public.attempts (user_id);
 CREATE INDEX IF NOT EXISTS idx_attempts_quiz
   ON public.attempts (quiz_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_one_active_attempt_per_user_quiz
+  ON public.attempts (user_id, quiz_id)
+  WHERE (status = 'in_progress');
 CREATE INDEX IF NOT EXISTS idx_answers_attempt
   ON public.answers (attempt_id);
 CREATE INDEX IF NOT EXISTS idx_scores_leaderboard
