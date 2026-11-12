@@ -8,6 +8,10 @@ export async function GET(
 ) {
   try {
     const { id: quizId } = await params;
+    if (!quizId) {
+      return apiError('Quiz ID is required', 400);
+    }
+
     const supabase = await createClient();
 
     // Fetch top scores for this quiz from Supabase ordered by score desc, time taken asc
@@ -35,7 +39,7 @@ export async function GET(
       .eq('quiz_id', quizId)
       .order('score', { ascending: false })
       .order('time_taken_seconds', { ascending: true })
-      .limit(100);
+      .limit(1000);
 
     if (error) {
       return apiError(`Failed to fetch leaderboard: ${error.message}`, 500);
@@ -64,8 +68,20 @@ export async function GET(
       const marksPerQ = quiz?.marks_per_question || 2;
       const totalQuestions = s.total_points > 0 ? Math.round(s.total_points / marksPerQ) : 0;
 
+      const previous = bestScores[index - 1];
+      const rank =
+        previous &&
+        previous.score === s.score &&
+        previous.time_taken_seconds === s.time_taken_seconds
+          ? bestScores.findIndex(
+              (candidate) =>
+                candidate.score === s.score &&
+                candidate.time_taken_seconds === s.time_taken_seconds
+            ) + 1
+          : index + 1;
+
       return {
-        rank: index + 1,
+        rank,
         userId: s.user_id,
         userName: profile?.full_name || profile?.username || 'Player',
         userAvatar: profile?.avatar_url,
