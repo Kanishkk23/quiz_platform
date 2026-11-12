@@ -233,4 +233,35 @@ describe('Quiz Attempt Engine & Server-Side Scoring Tests', () => {
       assert.strictEqual(isAuthorized, false);
     });
   });
+
+  describe('9. Leaderboard Best Attempt Deduplication', () => {
+    test('returns only single best attempt per user when retakes exist', () => {
+      // Simulate raw score rows ordered by score DESC, time ASC
+      const rawScores = [
+        { id: 's-1', user_id: 'user-bob', score: 10, time_taken_seconds: 40 }, // Bob attempt 2 (best)
+        { id: 's-2', user_id: 'user-alice', score: 8, time_taken_seconds: 35 }, // Alice attempt 1 (best)
+        { id: 's-3', user_id: 'user-bob', score: 8, time_taken_seconds: 50 },   // Bob attempt 1 (worse, retake)
+        { id: 's-4', user_id: 'user-alice', score: 6, time_taken_seconds: 30 }, // Alice attempt 2 (worse, retake)
+        { id: 's-5', user_id: 'user-charlie', score: 4, time_taken_seconds: 60 }, // Charlie attempt 1
+      ];
+
+      const seenUsers = new Set<string>();
+      const bestScores: typeof rawScores = [];
+
+      for (const s of rawScores) {
+        if (!seenUsers.has(s.user_id)) {
+          seenUsers.add(s.user_id);
+          bestScores.push(s);
+        }
+      }
+
+      assert.strictEqual(bestScores.length, 3);
+      assert.strictEqual(bestScores[0].user_id, 'user-bob');
+      assert.strictEqual(bestScores[0].score, 10);
+      assert.strictEqual(bestScores[1].user_id, 'user-alice');
+      assert.strictEqual(bestScores[1].score, 8);
+      assert.strictEqual(bestScores[2].user_id, 'user-charlie');
+      assert.strictEqual(bestScores[2].score, 4);
+    });
+  });
 });

@@ -35,13 +35,24 @@ export async function GET(
       .eq('quiz_id', quizId)
       .order('score', { ascending: false })
       .order('time_taken_seconds', { ascending: true })
-      .limit(50);
+      .limit(100);
 
     if (error) {
       return apiError(`Failed to fetch leaderboard: ${error.message}`, 500);
     }
 
-    const entries = (scores || []).map((s, index) => {
+    // Filter to retain only the single best attempt per player (highest score, fastest completion time)
+    const seenUsers = new Set<string>();
+    const bestScores: NonNullable<typeof scores> = [];
+
+    for (const s of scores || []) {
+      if (!seenUsers.has(s.user_id)) {
+        seenUsers.add(s.user_id);
+        bestScores.push(s);
+      }
+    }
+
+    const entries = bestScores.slice(0, 50).map((s, index) => {
       const profile = s.profiles as unknown as {
         id: string;
         username?: string;
