@@ -46,12 +46,28 @@ script resets the three quiz windows relative to the current time.
   this initial schema.
 - Retakes create separate attempt and score rows. The leaderboard uses each
   player's best attempt (highest score, then fastest time).
+- Ties with the same score and completion time receive the same competition
+  rank, while the next rank accounts for the tied entries.
 - `attempts` and `answers` are the private attempt record; `scores` is the
   leaderboard feed.
 - Correct options and explanations are protected by database grants in
   `policies.sql` and are revealed through the submitted-attempt review function.
+- The client subscribes to score changes through Supabase Realtime and reloads
+  the authoritative leaderboard response after a change.
 
 ## Acceptance checks
+
+The application test suite also verifies the checked-in database contracts:
+
+```bash
+npm test
+```
+
+These checks cover RLS ownership, answer-key protection, published-quiz
+locking, submitted-attempt consistency, active-attempt uniqueness, and
+leaderboard best-attempt ranking. They are contract checks against the SQL
+files; run the scripts in a development or test Supabase project to validate
+the live database behavior.
 
 After applying the scripts, run these checks in the SQL Editor.
 
