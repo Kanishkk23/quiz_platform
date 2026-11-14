@@ -1,6 +1,10 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@/lib/server';
 import { apiSuccess, apiError } from '@/lib/api-response';
+import {
+  assignCompetitionRanks,
+  selectBestAttempts,
+} from '@/services/leaderboard.service';
 
 export async function GET(
   _request: NextRequest,
@@ -45,18 +49,10 @@ export async function GET(
       return apiError(`Failed to fetch leaderboard: ${error.message}`, 500);
     }
 
-    // Filter to retain only the single best attempt per player (highest score, fastest completion time)
-    const seenUsers = new Set<string>();
-    const bestScores: NonNullable<typeof scores> = [];
+    const bestScores = selectBestAttempts(scores || []);
+    const rankedScores = assignCompetitionRanks(bestScores);
 
-    for (const s of scores || []) {
-      if (!seenUsers.has(s.user_id)) {
-        seenUsers.add(s.user_id);
-        bestScores.push(s);
-      }
-    }
-
-    const entries = bestScores.slice(0, 50).map((s, index) => {
+    const entries = rankedScores.slice(0, 50).map((s) => {
       const profile = s.profiles as unknown as {
         id: string;
         username?: string;
@@ -68,20 +64,8 @@ export async function GET(
       const marksPerQ = quiz?.marks_per_question || 2;
       const totalQuestions = s.total_points > 0 ? Math.round(s.total_points / marksPerQ) : 0;
 
-      const previous = bestScores[index - 1];
-      const rank =
-        previous &&
-        previous.score === s.score &&
-        previous.time_taken_seconds === s.time_taken_seconds
-          ? bestScores.findIndex(
-              (candidate) =>
-                candidate.score === s.score &&
-                candidate.time_taken_seconds === s.time_taken_seconds
-            ) + 1
-          : index + 1;
-
       return {
-        rank,
+        rank: s.rank,
         userId: s.user_id,
         userName: profile?.full_name || profile?.username || 'Player',
         userAvatar: profile?.avatar_url,
