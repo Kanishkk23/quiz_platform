@@ -287,21 +287,12 @@ html { scroll-behavior: smooth; }
 @keyframes qz-page-in { from { opacity: 0; transform: translateY(18px); } }
 .qz-page-in { animation: qz-page-in 0.5s cubic-bezier(0.2, 0.9, 0.25, 1) backwards; }
 
-/* ── Scroll progress bar + cursor ring (Fx.tsx) ── */
+/* ── Scroll progress bar (Fx.tsx) ── */
 .qz-progress {
   position: fixed; top: 0; left: 0; right: 0; height: 6px; z-index: 70;
   pointer-events: none; transform: scaleX(0); transform-origin: left;
   background: #FFE94A; border-bottom: 2px solid #0F3D2E;
 }
-.qz-ring {
-  position: fixed; left: 0; top: 0; z-index: 9999; width: 34px; height: 34px;
-  border-radius: 9999px; border: 2.5px solid #0F3D2E; box-shadow: 0 0 0 2px #FFFDF5;
-  pointer-events: none; opacity: 0;
-  transition: width 0.2s, height 0.2s, background-color 0.2s, opacity 0.25s;
-}
-.qz-ring[data-show="1"] { opacity: 1; }
-.qz-ring[data-hover="1"] { width: 58px; height: 58px; background-color: rgba(255, 233, 74, 0.5); }
-.qz-ring[data-down="1"] { width: 20px; height: 20px; background-color: #0F3D2E; }
 
 /* ── Scroll-driven reveals: add data-reveal to any element ── */
 @keyframes qz-reveal { from { opacity: 0; translate: 0 48px; scale: 0.96; } }
