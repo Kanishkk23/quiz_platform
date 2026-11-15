@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import AnswerDeckIntro from "./AnswerDeckIntro";
 import QuizCubeIntro from "./QuizCubeIntro";
 import styles from "./IntroGate.module.css";
@@ -17,15 +17,16 @@ type Props = {
   children: ReactNode;
 };
 
-type Phase = "check" | "play" | "exit" | "done";
+type Phase = "idle" | "play" | "exit" | "done";
 
-const STORAGE_KEY = "quizora-intro-seen";
 const PLAY_MS: Record<IntroVariant, number> = { deck: 4300, cube: 3900 };
 const EXIT_MS = 900;
 
-// In-memory session tracker to prevent intro from replaying on client-side navigation back to Home
-let hasIntroPlayed = false;
-const emptySubscribe = () => () => {};
+declare global {
+  interface Window {
+    __QUIZORA_INTRO_PLAYED__?: boolean;
+  }
+}
 
 export default function IntroGate({
   variant = "deck",
@@ -33,72 +34,62 @@ export default function IntroGate({
   logoSrc,
   children,
 }: Props) {
-  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
-  const [phase, setPhase] = useState<Phase>(() => (once ? "check" : "play"));
+  const [phase, setPhase] = useState<Phase>("idle");
 
   useEffect(() => {
-    if (!once) {
+    // If intro has already played in this SPA session (e.g. user clicked Logo, Home, or navigated back), skip it!
+    if (typeof window !== "undefined" && window.__QUIZORA_INTRO_PLAYED__) {
+      setPhase("done");
       return;
     }
 
-    queueMicrotask(() => {
-      try {
-        if (hasIntroPlayed || sessionStorage.getItem(STORAGE_KEY) === "1") {
-          hasIntroPlayed = true;
-          setPhase("done");
-          return;
-        }
-      } catch {}
+    // Mark as played so clicking the Logo or internal links never replays it
+    if (typeof window !== "undefined") {
+      window.__QUIZORA_INTRO_PLAYED__ = true;
+    }
 
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-      if (reduce) {
+    try {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         setPhase("done");
         return;
       }
+    } catch {}
 
-      hasIntroPlayed = true;
-      try {
-        sessionStorage.setItem(STORAGE_KEY, "1");
-      } catch {}
-      setPhase("play");
-    });
+    setPhase("play");
   }, [once]);
 
   // play -> exit -> done
   useEffect(() => {
     if (phase === "play") {
-      hasIntroPlayed = true;
-      try {
-        sessionStorage.setItem(STORAGE_KEY, "1");
-      } catch {}
       const t = setTimeout(() => setPhase("exit"), PLAY_MS[variant]);
       return () => clearTimeout(t);
     }
     if (phase === "exit") {
       const t = setTimeout(() => {
-        hasIntroPlayed = true;
-        try {
-          sessionStorage.setItem(STORAGE_KEY, "1");
-        } catch {}
         setPhase("done");
       }, EXIT_MS);
       return () => clearTimeout(t);
     }
   }, [phase, variant]);
 
-  // Lock page scroll while the intro is on screen
-  const active = mounted && (phase === "play" || phase === "exit");
+  // Lock page scroll ONLY while the intro animation is actively visible on screen
+  const active = phase === "play" || phase === "exit";
   useEffect(() => {
-    if (!active) return;
+    if (!active) {
+      document.documentElement.style.overflow = "";
+      return;
+    }
     const prev = document.documentElement.style.overflow;
     document.documentElement.style.overflow = "hidden";
     return () => {
-      document.documentElement.style.overflow = prev;
+      document.documentElement.style.overflow = prev || "";
     };
   }, [active]);
 
   const skip = useCallback(() => {
+    if (typeof window !== "undefined") {
+      window.__QUIZORA_INTRO_PLAYED__ = true;
+    }
     setPhase((p) => (p === "play" ? "exit" : p));
   }, []);
 
@@ -115,22 +106,26 @@ export default function IntroGate({
   return (
     <>
       {children}
-      {mounted && phase !== "done" && (
+      {active && (
         <div
           className={`${styles.overlay} ${phase === "exit" ? styles.exit : ""}`}
           role="presentation"
+          aria-hidden={phase !== "play"}
         >
-          {phase !== "check" &&
-            (variant === "cube" ? (
-              <QuizCubeIntro logoSrc={logoSrc} />
-            ) : (
-              <AnswerDeckIntro logoSrc={logoSrc} />
-            ))}
-          {phase === "play" && (
-            <button type="button" className={styles.skip} onClick={skip}>
-              Skip intro
-            </button>
+          {variant === "deck" ? (
+            <AnswerDeckIntro logoSrc={logoSrc} />
+          ) : (
+            <QuizCubeIntro logoSrc={logoSrc} />
           )}
+
+          <button
+            type="button"
+            className={styles.skip}
+            onClick={skip}
+            aria-label="Skip introduction"
+          >
+            Skip <span aria-hidden="true">→</span>
+          </button>
         </div>
       )}
     </>

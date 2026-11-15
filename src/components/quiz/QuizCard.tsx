@@ -93,41 +93,55 @@ export function QuizCard({ quiz }: QuizCardProps) {
         </div>
       </CardContent>
 
-      <CardFooter className="pt-0">
-        {isUpcoming ? (
-          <Button
-            disabled
-            className="w-full gap-2 bg-[#FFFDF5] text-[#0F3D2E]/60 border-2 border-[#0F3D2E]/40 font-bold rounded-[12px] py-5 cursor-not-allowed opacity-80"
-          >
-            <Clock className="h-4 w-4" />
-            Opens Soon
-          </Button>
-        ) : isFinished ? (
-          <Link href="/leaderboard" className="w-full">
-            <Button className="w-full gap-2 bg-[#FFFDF5] hover:bg-[#FFE94A]/30 text-[#0F3D2E] border-2 border-[#0F3D2E] font-bold rounded-[12px] shadow-[4px_4px_0_#0F3D2E] py-5 transition-all">
+      <CardFooter className="pt-0 flex flex-col gap-2">
+        <div className="flex items-center gap-2 w-full">
+          {isUpcoming ? (
+            <Button
+              disabled
+              className="flex-1 gap-2 bg-[#FFFDF5] text-[#0F3D2E]/60 border-2 border-[#0F3D2E]/40 font-bold rounded-[12px] py-5 cursor-not-allowed opacity-80"
+            >
+              <Clock className="h-4 w-4" />
+              Opens Soon
+            </Button>
+          ) : isFinished ? (
+            <Link href={`/quizzes/${quiz.id}/result`} className="flex-1">
+              <Button className="w-full gap-2 bg-[#FFFDF5] hover:bg-[#FFE94A]/30 text-[#0F3D2E] border-2 border-[#0F3D2E] font-bold rounded-[12px] shadow-[4px_4px_0_#0F3D2E] py-5 transition-all">
+                Concluded
+              </Button>
+            </Link>
+          ) : (
+            <Link href={targetHref} className="flex-1">
+              <Button className="w-full gap-2 bg-[#FFE94A] hover:bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] font-bold rounded-[12px] shadow-[4px_4px_0_#0F3D2E] hover:shadow-[6px_6px_0_#0F3D2E] active:translate-y-0.5 active:shadow-none transition-all py-5">
+                {isAuthenticated ? (
+                  <>
+                    <Play className="h-4 w-4 fill-current text-[#0F3D2E]" />
+                    Start Quiz
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </>
+                ) : (
+                  <>
+                    <Lock className="h-4 w-4 text-[#0F3D2E]" />
+                    Sign In to Attempt
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </>
+                )}
+              </Button>
+            </Link>
+          )}
+
+          {/* Dedicated View Leaderboard Button for Every Quiz */}
+          <Link href={`/leaderboard?quizId=${quiz.id}`}>
+            <Button
+              type="button"
+              variant="outline"
+              className="bg-[#FFFDF5] hover:bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] font-bold rounded-[12px] shadow-[4px_4px_0_#0F3D2E] hover:shadow-[5px_5px_0_#0F3D2E] py-5 px-3.5 transition-all flex items-center gap-1.5"
+              title="View Leaderboard"
+            >
               <Trophy className="h-4 w-4 text-[#0F3D2E]" />
-              Concluded • Leaderboard
+              <span className="hidden sm:inline text-xs font-bold">Leaderboard</span>
             </Button>
           </Link>
-        ) : (
-          <Link href={targetHref} className="w-full">
-            <Button className="w-full gap-2 bg-[#FFE94A] hover:bg-[#FFE94A] text-[#0F3D2E] border-2 border-[#0F3D2E] font-bold rounded-[12px] shadow-[4px_4px_0_#0F3D2E] hover:shadow-[6px_6px_0_#0F3D2E] active:translate-y-0.5 active:shadow-none transition-all py-5">
-              {isAuthenticated ? (
-                <>
-                  <Play className="h-4 w-4 fill-current text-[#0F3D2E]" />
-                  Start Quiz
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </>
-              ) : (
-                <>
-                  <Lock className="h-4 w-4 text-[#0F3D2E]" />
-                  Sign In to Attempt
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </>
-              )}
-            </Button>
-          </Link>
-        )}
+        </div>
       </CardFooter>
     </Card>
   );

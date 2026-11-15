@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { createNoopSupabaseClient, getSupabaseConfig } from '@/lib/supabase'
 
@@ -30,6 +31,25 @@ export async function createClient() {
           // user sessions.
         }
       },
+    },
+  })
+}
+
+/**
+ * Creates an admin Supabase client using the service role key to bypass RLS for public rankings and administrative tasks.
+ */
+export function createAdminClient() {
+  const { supabaseUrl, isConfigured } = getSupabaseConfig()
+  const serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim()
+
+  if (!isConfigured || !serviceRoleKey) {
+    return createNoopSupabaseClient()
+  }
+
+  return createSupabaseClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
     },
   })
 }

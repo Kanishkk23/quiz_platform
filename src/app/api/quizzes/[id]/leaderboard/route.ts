@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { createClient } from '@/lib/server';
+import { createAdminClient } from '@/lib/server';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import {
   assignCompetitionRanks,
@@ -16,7 +16,8 @@ export async function GET(
       return apiError('Quiz ID is required', 400);
     }
 
-    const supabase = await createClient();
+    // Use admin client to reliably load public leaderboard rankings without RLS rejection
+    const supabase = createAdminClient();
 
     // Fetch top scores for this quiz from Supabase ordered by score desc, time taken asc
     const { data: scores, error } = await supabase
