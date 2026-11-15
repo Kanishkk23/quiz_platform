@@ -15,15 +15,25 @@ export async function GET(
 
     const supabase = await createClient();
 
-    // 1. Fetch Quiz
-    const { data: quiz, error: quizError } = await supabase
-      .from('quizzes')
-      .select('*')
-      .eq('id', quizId)
-      .single();
+    // 1. Fetch Quiz and Questions in parallel
+    const [quizResult, questionsResult] = await Promise.all([
+      supabase.from('quizzes').select('*').eq('id', quizId).single(),
+      supabase
+        .from('questions')
+        .select('id, quiz_id, text, position, question_options(id, question_id, text, position)')
+        .eq('quiz_id', quizId)
+        .order('position', { ascending: true }),
+    ]);
+
+    const { data: quiz, error: quizError } = quizResult;
+    const { data: rawQuestions, error: questionsError } = questionsResult;
 
     if (quizError || !quiz) {
       return apiError('Quiz not found', 404);
+    }
+
+    if (questionsError) {
+      return apiError(questionsError.message, 500);
     }
 
     const now = new Date();
@@ -35,17 +45,6 @@ export async function GET(
       availability = 'upcoming';
     } else if (now >= endsAt) {
       availability = 'finished';
-    }
-
-    // 2. Fetch safe questions & options (without answers/explanations)
-    const { data: rawQuestions, error: questionsError } = await supabase
-      .from('questions')
-      .select('id, quiz_id, text, position, question_options(id, question_id, text, position)')
-      .eq('quiz_id', quizId)
-      .order('position', { ascending: true });
-
-    if (questionsError) {
-      return apiError(questionsError.message, 500);
     }
 
     const questions = (rawQuestions || []).map((q: any) => {

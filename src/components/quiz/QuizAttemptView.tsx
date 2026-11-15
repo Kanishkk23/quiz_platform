@@ -210,18 +210,24 @@ export function QuizAttemptView({ quizId }: QuizAttemptViewProps) {
       setIsSubmitting(true);
       setSaveError(null);
 
-      // Ensure all selected answers are confirmed persisted before final scoring
-      for (const [qId, optId] of Object.entries(answers)) {
-        if (!optId) continue;
-        const res = await fetch(`/api/attempts/${attempt.id}/answers`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ questionId: qId, optionId: optId }),
-        });
-        const data = await res.json();
-        if (!res.ok || !data.success) {
-          throw new Error(data.error || `Failed to save answer for question ${qId}`);
-        }
+      // Fast submission: Answers are already auto-persisted on selection.
+      // If any pending answers remain unsaved, flush them in parallel.
+      if (unsavedQuestionIds.size > 0) {
+        await Promise.all(
+          Array.from(unsavedQuestionIds).map(async (qId) => {
+            const optId = answers[qId];
+            if (!optId) return;
+            const res = await fetch(`/api/attempts/${attempt.id}/answers`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ questionId: qId, optionId: optId }),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+              throw new Error(data.error || `Failed to save answer for question ${qId}`);
+            }
+          })
+        );
       }
 
       const res = await fetch(`/api/attempts/${attempt.id}/submit`, {
