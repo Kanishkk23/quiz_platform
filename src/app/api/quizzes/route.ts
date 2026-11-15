@@ -17,7 +17,7 @@ export async function GET() {
 
     const now = new Date();
 
-    const formatted = (quizzes || []).map((q) => {
+    const formatted = (quizzes || []).map((q: any) => {
       const startsAt = new Date(q.starts_at);
       const endsAt = new Date(q.ends_at);
 

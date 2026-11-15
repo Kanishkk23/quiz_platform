@@ -51,8 +51,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get current session
     supabase.auth
       .getSession()
-      .then(({ data: { session }, error }) => {
+      .then((result: { data: { session: any | null }; error: any }) => {
         if (!mounted) return;
+        const { session } = result.data;
+        const { error } = result;
         if (session?.user && !error) {
           setUser(mapSupabaseUser(session.user));
         } else {
@@ -67,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen to real-time auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
       if (!mounted) return;
       if (session?.user) {
         setUser(mapSupabaseUser(session.user));

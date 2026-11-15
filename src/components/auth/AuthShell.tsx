@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import QuizoraMark from "@/components/intro/QuizoraMark";
+import { SplitText } from "@/components/fx/SplitText";
 
 type Variant = "login" | "register";
 
@@ -57,7 +58,10 @@ export function AuthShell({ variant, children }: { variant: Variant; children: R
     >
       <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1.05fr_1fr]">
         {/* Creative side panel (large screens only) */}
-        <aside className="relative hidden min-h-[640px] flex-col justify-between overflow-hidden rounded-[24px] border-[3px] border-[#0F3D2E] bg-[#0F3D2E] p-10 text-[#FFFDF5] shadow-[9px_9px_0_#FFE94A] lg:flex">
+        <aside
+          data-tilt="3"
+          className="relative hidden min-h-[640px] flex-col justify-between overflow-hidden rounded-[24px] border-[3px] border-[#0F3D2E] bg-[#0F3D2E] p-10 text-[#FFFDF5] shadow-[9px_9px_0_#FFE94A] lg:flex"
+        >
           <div className="flex items-center gap-3">
             <QuizoraMark size={48} />
             <span className="font-mono text-xs font-bold uppercase tracking-widest text-[#BDF2D5]">
@@ -75,9 +79,11 @@ export function AuthShell({ variant, children }: { variant: Variant; children: R
               className="font-[family-name:var(--font-display)] font-extrabold leading-[0.92] tracking-tight"
               style={{ fontSize: "clamp(3.5rem, 6vw, 6rem)" }}
             >
-              <span className="block">{c.lines[0]}</span>
+              <span className="block">
+                <SplitText text={c.lines[0]} />
+              </span>
               <span className="mt-2 inline-block -rotate-2 rounded-[12px] bg-[#FFE94A] px-4 pb-1 text-[#0F3D2E]">
-                {c.lines[1]}
+                <SplitText text={c.lines[1]} delay={300} />
               </span>
             </h2>
             <p className="mt-4 -rotate-2 font-[family-name:var(--font-hand)] text-2xl text-[#FFE94A]">

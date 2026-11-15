@@ -49,10 +49,10 @@ export async function GET(
       return apiError(`Failed to fetch leaderboard: ${error.message}`, 500);
     }
 
-    const bestScores = selectBestAttempts(scores || []);
-    const rankedScores = assignCompetitionRanks(bestScores);
+    const bestScores = selectBestAttempts((scores || []) as any[]);
+    const rankedScores = assignCompetitionRanks(bestScores as any[]) as any[];
 
-    const entries = rankedScores.slice(0, 50).map((s) => {
+    const entries = rankedScores.slice(0, 50).map((s: any) => {
       const profile = s.profiles as unknown as {
         id: string;
         username?: string;

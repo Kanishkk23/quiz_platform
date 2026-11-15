@@ -48,9 +48,9 @@ export async function GET(
       return apiError(questionsError.message, 500);
     }
 
-    const questions = (rawQuestions || []).map((q) => {
+    const questions = (rawQuestions || []).map((q: any) => {
       const options = Array.isArray(q.question_options)
-        ? [...q.question_options].sort((a, b) => a.position - b.position)
+        ? [...q.question_options].sort((a: any, b: any) => a.position - b.position)
         : [];
 
       return {
