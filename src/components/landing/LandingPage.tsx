@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Backdrop from "./Backdrop";
 import QuizPreview from "./QuizPreview";
-import QuizoraMark from "../intro/QuizoraMark";
 import { Arrow, Bolt, CheckCircle, Hourglass, Sparkle } from "./Icons";
 import s from "./landing.module.css";
 import { SmoothScroll } from "./SmoothScroll";
@@ -24,22 +23,6 @@ export default function LandingPage() {
       <div className={s.page}>
         <Backdrop />
         <HeroFloaters />
-
-        <header className={s.header}>
-          <Link href="/" className={s.brand} aria-label="Quizora home">
-            <QuizoraMark size={44} className={s.brandMark} />
-            <span className={s.brandName}>quizora</span>
-            <span className={s.brandTag}>-B</span>
-          </Link>
-          <nav className={s.nav} aria-label="Account">
-            <Link href="/login" className={s.navLink}>
-              Login
-            </Link>
-            <Link href="/register" className={s.navCta}>
-              Sign Up
-            </Link>
-          </nav>
-        </header>
 
         <main className={s.hero}>
           <div className={s.copy}>

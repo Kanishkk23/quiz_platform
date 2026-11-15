@@ -41,29 +41,28 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
 
-  // On "/" it starts hidden at the top so it doesn't collide with the hero's header.
-  // On all other pages ("/quizzes", "/leaderboard", etc.), it starts visible.
-  const [isVisible, setIsVisible] = useState(pathname !== "/");
+  // Single global navbar: starts visible, disappears on scroll down, appears on scroll up
+  const [isVisible, setIsVisible] = useState(true);
   const [prevPath, setPrevPath] = useState(pathname);
 
-  // Keep track of route changes
+  // Keep navbar visible on route changes
   if (pathname !== prevPath) {
     setPrevPath(pathname);
-    setIsVisible(pathname !== "/");
+    setIsVisible(true);
   }
 
   // Disappearing navbar logic on scroll
   useEffect(() => {
-    let prevScrollY = window.scrollY;
+    let prevScrollY = Math.max(0, window.scrollY);
     let ticking = false;
 
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY;
+          const currentScrollY = Math.max(0, window.scrollY);
           const delta = currentScrollY - prevScrollY;
 
-          // If mobile menu is open, keep navbar visible
+          // If mobile sheet menu is open, lock navbar visible
           if (mobileOpen) {
             setIsVisible(true);
             prevScrollY = currentScrollY;
@@ -71,30 +70,15 @@ export function Navbar() {
             return;
           }
 
-          if (pathname === "/") {
-            // Home page: hide at top (0-100px) so hero header is clean.
-            // When user scrolls down past 100px, it appears when scrolling up!
-            if (currentScrollY < 100) {
-              setIsVisible(false);
-            } else if (delta > 8) {
-              // Scrolling down
-              setIsVisible(false);
-            } else if (delta < -8) {
-              // Scrolling up
-              setIsVisible(true);
-            }
-          } else {
-            // All other pages (/quizzes, /leaderboard, etc.)
-            if (currentScrollY <= 15) {
-              // Near the very top, always show
-              setIsVisible(true);
-            } else if (delta > 6 && currentScrollY > 60) {
-              // Scrolling down: disappear
-              setIsVisible(false);
-            } else if (delta < -6) {
-              // Scrolling up: reappear
-              setIsVisible(true);
-            }
+          // Near the very top, always show navbar
+          if (currentScrollY <= 20) {
+            setIsVisible(true);
+          } else if (delta > 7 && currentScrollY > 70) {
+            // Scrolling down: disappear
+            setIsVisible(false);
+          } else if (delta < -7) {
+            // Scrolling up: reappear
+            setIsVisible(true);
           }
 
           prevScrollY = currentScrollY;
@@ -106,19 +90,16 @@ export function Navbar() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [pathname, mobileOpen]);
+  }, [mobileOpen]);
 
   // Show profile navigation link ONLY when user is logged in
   const visibleNavLinks = isAuthenticated
     ? [...baseNavLinks, { href: "/profile", label: "Profile", icon: UserCheck }]
     : baseNavLinks;
 
-  const isHome = pathname === "/";
-  const positionClass = isHome ? "fixed top-0 left-0 right-0" : "sticky top-0";
-
   return (
     <header
-      className={`${positionClass} z-50 w-full border-b-[2.5px] border-[#0F3D2E] bg-[#FFFDF5] shadow-[0_4px_12px_rgba(15,61,46,0.06)] transition-transform duration-300 ease-in-out ${
+      className={`sticky top-0 z-50 w-full border-b-[2.5px] border-[#0F3D2E] bg-[#FFFDF5] shadow-[0_4px_12px_rgba(15,61,46,0.06)] transition-transform duration-300 ease-in-out ${
         isVisible || mobileOpen ? "translate-y-0" : "-translate-y-full"
       }`}
     >
@@ -169,16 +150,16 @@ export function Navbar() {
                 <Link href="/profile">
                   <DropdownMenuItem className="cursor-pointer flex items-center font-bold hover:bg-[#FFE94A] focus:bg-[#FFE94A] rounded-lg">
                     <User className="mr-2 h-4 w-4" />
-                    My Profile &amp; History
+                    <span>My Profile</span>
                   </DropdownMenuItem>
                 </Link>
                 <DropdownMenuSeparator className="bg-[#0F3D2E]/20" />
                 <DropdownMenuItem
-                  onClick={logout}
-                  className="cursor-pointer text-[#E5484D] focus:text-[#E5484D] font-bold hover:bg-[#E5484D]/10 rounded-lg"
+                  onClick={() => logout()}
+                  className="cursor-pointer text-[#E5484D] focus:text-[#E5484D] flex items-center font-bold hover:bg-[#FFE94A] focus:bg-[#FFE94A] rounded-lg"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  Logout
+                  <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
