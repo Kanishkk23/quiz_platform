@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const MONO = "font-[family-name:var(--font-mono)]";
 const DISPLAY = "font-[family-name:var(--font-display)]";
@@ -36,81 +35,112 @@ const towers = [
 
 export function LandingStory() {
   const root = useRef<HTMLElement>(null);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
 
   useEffect(() => {
     const el = root.current;
     if (!el) return;
-    gsap.registerPlugin(ScrollTrigger);
 
     const q = gsap.utils.selector(el);
     const stepEls = q("[data-step]") as HTMLElement[];
     const visEls = q("[data-vis]") as HTMLElement[];
     const dots = q("[data-dot]") as HTMLElement[];
+    const cards = q("[data-card]") as HTMLElement[];
+    const chipsEls = q("[data-chip]") as HTMLElement[];
+    const towersEls = q("[data-tower]") as HTMLElement[];
+    const crownEl = el.querySelector("[data-crown]") as HTMLElement;
+    const ring = el.querySelector("[data-ring]") as SVGElement | null;
+    const time = el.querySelector("[data-time]") as SVGElement | null;
+    const pick = el.querySelector("[data-pick]") as HTMLElement | null;
+    const proxy = { v: 20 };
+
+    const setDot = (index: number) => {
+      dots.forEach((dot, k) => {
+        dot.dataset.on = String(k === index);
+      });
+    };
+
     const mm = gsap.matchMedia();
 
-    // Normal motion: one pinned scene that scroll scrubs through
+    // Continuous video-like autoplay loop without scroll hijacking or pinning
     mm.add("(prefers-reduced-motion: no-preference)", () => {
-      const ring = el.querySelector("[data-ring]");
-      const time = el.querySelector("[data-time]");
-      const pick = el.querySelector("[data-pick]");
-      const proxy = { v: 20 };
-
+      // Set initial states
       gsap.set(visEls.slice(1), { autoAlpha: 0 });
-      gsap.set(stepEls.slice(1), { autoAlpha: 0, y: 50 });
+      gsap.set(stepEls.slice(1), { autoAlpha: 0, y: 30 });
+      gsap.set(visEls[0], { autoAlpha: 1, scale: 1 });
+      gsap.set(stepEls[0], { autoAlpha: 1, y: 0 });
 
       const tl = gsap.timeline({
-        defaults: { ease: "power3.out" },
-        scrollTrigger: {
-          trigger: el,
-          start: "top top",
-          end: "+=320%",
-          pin: true,
-          scrub: 0.7,
-          anticipatePin: 1,
-          onUpdate: (self) => {
-            const active = Math.min(2, Math.floor(self.progress * 3));
-            dots.forEach((dot, k) => {
-              dot.dataset.on = String(k === active);
-            });
-          },
-        },
+        repeat: -1,
+        defaults: { ease: "power2.out" },
       });
+      tlRef.current = tl;
 
+      // ==========================================
       // Scene 1: pick a quiz
-      tl.from(q("[data-card]"), { y: 220, rotate: (i: number) => (i % 2 ? 14 : -14), autoAlpha: 0, stagger: 0.25, duration: 1.2 }, 0)
-        .to(stepEls[0], { autoAlpha: 0, y: -50, duration: 0.6 }, 2.6)
-        .to(visEls[0], { autoAlpha: 0, scale: 0.9, duration: 0.6 }, 2.6)
-
-        // Scene 2: beat the clock
-        .to(stepEls[1], { autoAlpha: 1, y: 0, duration: 0.6 }, 3.2)
-        .to(visEls[1], { autoAlpha: 1, duration: 0.6 }, 3.2)
-        .fromTo(q("[data-chip]"), { y: 80, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: 0.12, duration: 0.8 }, 3.4)
-        .to(
-          proxy,
-          {
-            v: 4,
-            duration: 2.2,
-            ease: "none",
-            onUpdate: () => {
-              ring?.setAttribute("stroke-dashoffset", String(1 - proxy.v / 20));
-              if (time) time.textContent = `0:${String(Math.ceil(proxy.v)).padStart(2, "0")}`;
-            },
-          },
-          3.4
+      // ==========================================
+      tl.addLabel("scene1")
+        .call(() => setDot(0))
+        .set(stepEls[0], { autoAlpha: 1, y: 0 })
+        .set(visEls[0], { autoAlpha: 1, scale: 1 })
+        .fromTo(
+          cards,
+          { y: 55, autoAlpha: 0, rotate: (i: number) => (i % 2 ? 6 : -6) },
+          { y: 0, autoAlpha: 1, rotate: 0, stagger: 0.12, duration: 0.6, ease: "back.out(1.5)" }
         )
-        .to(pick, { scale: 1.15, rotate: -6, duration: 0.5, ease: "back.out(2)" }, 5.0)
-        .to(stepEls[1], { autoAlpha: 0, y: -50, duration: 0.6 }, 5.8)
-        .to(visEls[1], { autoAlpha: 0, scale: 0.9, duration: 0.6 }, 5.8)
+        // Hold Scene 1 for comfortable reading
+        .to({}, { duration: 2.8 })
+        // Out-transition Scene 1
+        .to(stepEls[0], { autoAlpha: 0, y: -30, duration: 0.45, ease: "power2.in" })
+        .to(visEls[0], { autoAlpha: 0, scale: 0.95, duration: 0.45, ease: "power2.in" }, "<")
 
+        // ==========================================
+        // Scene 2: beat the clock
+        // ==========================================
+        .addLabel("scene2")
+        .call(() => {
+          setDot(1);
+          proxy.v = 20;
+          if (time) time.textContent = "0:20";
+          ring?.setAttribute("stroke-dashoffset", "0");
+        })
+        .set(pick, { scale: 1, rotate: 0 })
+        .fromTo(stepEls[1], { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: "power2.out" })
+        .fromTo(visEls[1], { autoAlpha: 0, scale: 0.95 }, { autoAlpha: 1, scale: 1, duration: 0.45, ease: "power2.out" }, "<")
+        .fromTo(chipsEls, { y: 35, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: 0.08, duration: 0.35 }, "-=0.2")
+        .to(proxy, {
+          v: 4,
+          duration: 2.0,
+          ease: "none",
+          onUpdate: () => {
+            ring?.setAttribute("stroke-dashoffset", String(1 - proxy.v / 20));
+            if (time) time.textContent = `0:${String(Math.ceil(proxy.v)).padStart(2, "0")}`;
+          },
+        })
+        .to(pick, { scale: 1.15, rotate: -6, duration: 0.4, ease: "back.out(2)" })
+        // Hold Scene 2
+        .to({}, { duration: 1.2 })
+        // Out-transition Scene 2
+        .to(stepEls[1], { autoAlpha: 0, y: -30, duration: 0.45, ease: "power2.in" })
+        .to(visEls[1], { autoAlpha: 0, scale: 0.95, duration: 0.45, ease: "power2.in" }, "<")
+
+        // ==========================================
         // Scene 3: climb the ranks
-        .to(stepEls[2], { autoAlpha: 1, y: 0, duration: 0.6 }, 6.4)
-        .to(visEls[2], { autoAlpha: 1, duration: 0.6 }, 6.4)
-        .fromTo(q("[data-tower]"), { scaleY: 0 }, { scaleY: 1, transformOrigin: "bottom", stagger: 0.2, duration: 1, ease: "back.out(1.4)" }, 6.6)
-        .fromTo(q("[data-crown]"), { autoAlpha: 0, y: -30, scale: 0.4 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(3)" }, 7.9)
-        .to({}, { duration: 0.8 });
+        // ==========================================
+        .addLabel("scene3")
+        .call(() => setDot(2))
+        .fromTo(stepEls[2], { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: "power2.out" })
+        .fromTo(visEls[2], { autoAlpha: 0, scale: 0.95 }, { autoAlpha: 1, scale: 1, duration: 0.45, ease: "power2.out" }, "<")
+        .fromTo(towersEls, { scaleY: 0 }, { scaleY: 1, transformOrigin: "bottom", stagger: 0.12, duration: 0.7, ease: "back.out(1.4)" }, "-=0.2")
+        .fromTo(crownEl, { autoAlpha: 0, y: -25, scale: 0.3 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(3)" })
+        // Hold Scene 3
+        .to({}, { duration: 2.5 })
+        // Out-transition Scene 3
+        .to(stepEls[2], { autoAlpha: 0, y: -30, duration: 0.45, ease: "power2.in" })
+        .to(visEls[2], { autoAlpha: 0, scale: 0.95, duration: 0.45, ease: "power2.in" }, "<");
     });
 
-    // Reduced motion: show everything stacked, no pinning
+    // Reduced motion: show static stacked layout
     mm.add("(prefers-reduced-motion: reduce)", () => {
       el.style.height = "auto";
       el.style.overflow = "visible";
@@ -126,20 +156,23 @@ export function LandingStory() {
       });
     });
 
-    // The page transition moves content briefly, so measure again once it settles
-    const refresh = window.setTimeout(() => ScrollTrigger.refresh(), 700);
-
     return () => {
-      window.clearTimeout(refresh);
       mm.revert();
     };
   }, []);
+
+  const jumpTo = (index: number) => {
+    if (tlRef.current) {
+      tlRef.current.seek(`scene${index + 1}`);
+      tlRef.current.play();
+    }
+  };
 
   return (
     <section
       ref={root}
       aria-label="How it works"
-      className="relative h-screen overflow-hidden bg-[#0F3D2E] text-[#FFFDF5]"
+      className="relative min-h-[620px] lg:h-[700px] flex items-center overflow-hidden bg-[#0F3D2E] text-[#FFFDF5]"
     >
       <p className={`${MONO} absolute left-1/2 top-6 -translate-x-1/2 text-xs font-bold uppercase tracking-widest text-[#BDF2D5]`}>
         Q2. How does it work?
@@ -241,14 +274,17 @@ export function LandingStory() {
         </div>
       </div>
 
-      {/* Progress dots */}
-      <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-3" aria-hidden="true">
+      {/* Progress dots / interactive controls */}
+      <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-3" aria-label="Animation progress">
         {[0, 1, 2].map((i) => (
-          <span
+          <button
             key={i}
+            type="button"
             data-dot
             data-on={i === 0 ? "true" : "false"}
-            className="h-2.5 w-2.5 rounded-full border-2 border-[#FFFDF5]/60 transition-all duration-300 data-[on=true]:w-10 data-[on=true]:border-[#FFE94A] data-[on=true]:bg-[#FFE94A]"
+            onClick={() => jumpTo(i)}
+            aria-label={`Jump to scene ${i + 1}`}
+            className="h-2.5 w-2.5 rounded-full border-2 border-[#FFFDF5]/60 transition-all duration-300 data-[on=true]:w-10 data-[on=true]:border-[#FFE94A] data-[on=true]:bg-[#FFE94A] cursor-pointer focus:outline-none"
           />
         ))}
       </div>
