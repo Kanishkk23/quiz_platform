@@ -1,11 +1,12 @@
 import { createBrowserClient } from '@supabase/ssr'
+import { createNoopSupabaseClient, getSupabaseConfig } from '@/lib/supabase'
 
 export function createClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-  const supabaseKey =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    ''
+  const { supabaseUrl, supabaseKey, isConfigured } = getSupabaseConfig()
+
+  if (!isConfigured) {
+    return createNoopSupabaseClient()
+  }
 
   return createBrowserClient(supabaseUrl, supabaseKey)
 }

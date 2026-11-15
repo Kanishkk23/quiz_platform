@@ -39,7 +39,7 @@ export async function GET() {
       return apiError(`Failed to fetch attempts: ${error.message}`, 500);
     }
 
-    const formatted = (attempts || []).map((att) => {
+    const formatted = (attempts || []).map((att: any) => {
       const quiz = att.quizzes as unknown as {
         id: string;
         title: string;
