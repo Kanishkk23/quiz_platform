@@ -43,13 +43,11 @@ export default function IntroGate({
       return;
     }
 
-    // Mark as played so clicking the Logo or internal links never replays it
-    if (typeof window !== "undefined") {
-      window.__QUIZORA_INTRO_PLAYED__ = true;
-    }
-
     try {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        if (typeof window !== "undefined") {
+          window.__QUIZORA_INTRO_PLAYED__ = true;
+        }
         setPhase("done");
         return;
       }
@@ -66,6 +64,9 @@ export default function IntroGate({
     }
     if (phase === "exit") {
       const t = setTimeout(() => {
+        if (typeof window !== "undefined") {
+          window.__QUIZORA_INTRO_PLAYED__ = true;
+        }
         setPhase("done");
       }, EXIT_MS);
       return () => clearTimeout(t);

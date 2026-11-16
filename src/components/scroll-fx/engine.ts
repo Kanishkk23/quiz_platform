@@ -44,19 +44,19 @@ export function initScrollFx(): () => void {
   let raf = 0;
 
   const reveal = (el: HTMLElement) => {
-    const delay = el.dataset.fx === "mark" ? 380 : Math.min(order.get(el) ?? 0, 5) * 90;
+    const delay = el.dataset.fx === "mark" ? 480 : Math.min(order.get(el) ?? 0, 5) * 180;
     el.style.transitionDelay = `${delay}ms`;
     el.dataset.fxState = "in";
     const t = window.setTimeout(() => {
       timers.delete(t);
       land(el);
-    }, delay + 1150);
+    }, delay + 1850);
     timers.add(t);
   };
 
   const check = () => {
     raf = 0;
-    const limit = window.innerHeight * 0.88;
+    const limit = window.innerHeight * 0.86;
     waiting.forEach((el) => {
       if (el.getBoundingClientRect().top < limit) {
         waiting.delete(el);

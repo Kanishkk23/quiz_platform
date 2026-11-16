@@ -1,11 +1,15 @@
 /* Quizora scroll effect · Option 1 · PAPER RISE
    Scoped to html[data-fx-mode="paper"], which the engine sets only while running. */
 
+html[data-fx-mode="paper"] [data-fx] {
+  animation: none !important;
+}
+
 html[data-fx-mode="paper"] [data-fx-state] {
   transition-property: opacity, translate, rotate, clip-path;
-  transition-duration: 0.85s, 1s, 1s, 0.8s;
-  transition-timing-function: ease, cubic-bezier(0.2, 0.8, 0.2, 1), cubic-bezier(0.2, 0.8, 0.2, 1),
-    cubic-bezier(0.6, 0, 0.2, 1);
+  transition-duration: 1.4s, 1.6s, 1.6s, 1.3s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1), cubic-bezier(0.16, 1, 0.3, 1),
+    cubic-bezier(0.16, 1, 0.3, 1), cubic-bezier(0.4, 0, 0.2, 1);
   will-change: opacity, translate, rotate;
 }
 
@@ -14,15 +18,15 @@ html[data-fx-mode="paper"] [data-fx-state="hidden"] {
 }
 
 html[data-fx-mode="paper"] [data-fx="title"][data-fx-state="hidden"] {
-  translate: 0 44px;
+  translate: 0 48px;
 }
 html[data-fx-mode="paper"] [data-fx="text"][data-fx-state="hidden"] {
-  translate: 0 28px;
+  translate: 0 32px;
 }
 html[data-fx-mode="paper"] [data-fx="item"][data-fx-state="hidden"],
 html[data-fx-mode="paper"] [data-fx="media"][data-fx-state="hidden"] {
-  translate: 0 64px;
-  rotate: 1 0 0 14deg;
+  translate: 0 72px;
+  rotate: 1 0 0 16deg;
 }
 
 /* highlight marker: wipes in left → right (text and highlight together) */
@@ -36,11 +40,11 @@ html[data-fx-mode="paper"] [data-fx="mark"][data-fx-state="hidden"] {
 
 @media (max-width: 700px) {
   html[data-fx-mode="paper"] [data-fx="title"][data-fx-state="hidden"] {
-    translate: 0 28px;
+    translate: 0 30px;
   }
   html[data-fx-mode="paper"] [data-fx="item"][data-fx-state="hidden"],
   html[data-fx-mode="paper"] [data-fx="media"][data-fx-state="hidden"] {
-    translate: 0 40px;
-    rotate: 1 0 0 8deg;
+    translate: 0 48px;
+    rotate: 1 0 0 10deg;
   }
 }
