@@ -36,17 +36,18 @@ export function WarmUp() {
   return (
     <section className="bg-[#FFFDF5] px-4 py-24 sm:px-6">
       <div className="container mx-auto max-w-4xl">
-        <p className={`${MONO} mb-3 text-sm font-bold text-[#0F3D2E]`}>Q4. Warm-up</p>
+        <p data-fx="text" className={`${MONO} mb-3 text-sm font-bold text-[#0F3D2E]`}>Q4. Warm-up</p>
         <h2
+          data-fx="title"
           data-reveal
           className={`${DISPLAY} mb-3 font-extrabold leading-[0.92] tracking-tight text-[#0F3D2E]`}
           style={{ fontSize: "clamp(2.75rem, 7vw, 6rem)" }}
         >
-          try one <span className="bg-[linear-gradient(transparent_58%,#FFE94A_58%)]">right now.</span>
+          try one <span data-fx="mark" className="bg-[linear-gradient(transparent_58%,#FFE94A_58%)]">right now.</span>
         </h2>
-        <p className="mb-10 max-w-md text-lg font-medium text-[#0F3D2E]/80">No login needed. Just pick an answer.</p>
+        <p data-fx="text" className="mb-10 max-w-md text-lg font-medium text-[#0F3D2E]/80">No login needed. Just pick an answer.</p>
 
-        <div className="rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] p-5 shadow-[9px_9px_0_#0F3D2E] sm:p-8">
+        <div data-fx="media" className="rounded-[18px] border-[3px] border-[#0F3D2E] bg-[#FFFDF5] p-5 shadow-[9px_9px_0_#0F3D2E] sm:p-8">
           <h3 className={`${DISPLAY} mb-6 text-3xl font-extrabold leading-tight text-[#0F3D2E] sm:text-5xl`}>{QUESTION}</h3>
 
           <div className="grid gap-3 sm:grid-cols-2">

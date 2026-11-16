@@ -47,7 +47,7 @@ export function Footer() {
 
       <div className="container mx-auto grid max-w-6xl gap-12 px-4 pb-12 pt-16 sm:px-6 md:grid-cols-[1.1fr_1fr_1fr]">
         {/* Brand sticker */}
-        <div data-reveal="left" className="flex flex-col gap-5">
+        <div data-fx="item" data-reveal="left" className="flex flex-col gap-5">
           <Link
             href="/"
             aria-label="Quizora home"
@@ -66,7 +66,7 @@ export function Footer() {
         </div>
 
         {/* Navigation */}
-        <div data-reveal className="flex flex-col gap-4">
+        <div data-fx="item" data-reveal className="flex flex-col gap-4">
           <h3 className="font-mono text-xs font-bold uppercase tracking-widest text-[#BDF2D5]">
             Arena Navigation
           </h3>
@@ -94,7 +94,7 @@ export function Footer() {
         </div>
 
         {/* Rules sticky note */}
-        <div data-reveal="right" className="h-fit">
+        <div data-fx="item" data-reveal="right" className="h-fit">
           <div
             data-tilt="7"
             className="relative rotate-1 rounded-[14px] border-[3px] border-[#FFFDF5] bg-[#FFE94A] p-6 pt-8 text-[#0F3D2E] shadow-[6px_6px_0_#BDF2D5]"

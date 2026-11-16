@@ -71,19 +71,20 @@ export function StatsStrip() {
       }}
     >
       <div className="container mx-auto max-w-6xl">
-        <p className={`${MONO} mb-3 text-sm font-bold text-[#0F3D2E]`}>Q3.</p>
+        <p data-fx="text" className={`${MONO} mb-3 text-sm font-bold text-[#0F3D2E]`}>Q3.</p>
         <h2
+          data-fx="title"
           data-reveal
           className={`${DISPLAY} mb-12 font-extrabold leading-[0.92] tracking-tight text-[#0F3D2E]`}
           style={{ fontSize: "clamp(2.75rem, 7vw, 6rem)" }}
         >
           the rules,{" "}
-          <span className="bg-[linear-gradient(transparent_58%,#FFE94A_58%)]">in numbers.</span>
+          <span data-fx="mark" className="bg-[linear-gradient(transparent_58%,#FFE94A_58%)]">in numbers.</span>
         </h2>
 
         <div data-stagger className="grid gap-5 md:grid-cols-3">
           {cards.map((card) => (
-            <div key={card.label}>
+            <div key={card.label} data-fx="item">
               <div
                 data-tilt="9"
                 className={`border-[3px] border-[#0F3D2E] p-8 text-[#0F3D2E] shadow-[9px_9px_0_#0F3D2E] ${card.tone} ${card.corner}`}

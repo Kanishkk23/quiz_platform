@@ -10,6 +10,7 @@ import { LandingStory } from "./LandingStory";
 import { StatsStrip } from "./StatsStrip";
 import { WarmUp } from "./WarmUp";
 import { FinalCta } from "./FinalCta";
+import ScrollFx from "@/components/scroll-fx/ScrollFx";
 
 /**
  * Landing page: animated hero, then a scroll-driven story, live stats, a playable
@@ -67,6 +68,7 @@ export default function LandingPage() {
       <StatsStrip />
       <WarmUp />
       <FinalCta />
+      <ScrollFx />
     </>
   );
 }

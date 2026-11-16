@@ -8,8 +8,9 @@ export function FinalCta() {
   return (
     <section className="overflow-hidden bg-[#FFE94A] text-[#0F3D2E]">
       <div className="container mx-auto max-w-6xl px-4 py-24 text-center sm:px-6">
-        <p className={`${MONO} mb-4 text-sm font-bold`}>Q5.</p>
+        <p data-fx="text" className={`${MONO} mb-4 text-sm font-bold`}>Q5.</p>
         <h2
+          data-fx="title"
           data-reveal="zoom"
           className={`${DISPLAY} font-extrabold leading-[0.9] tracking-tight`}
           style={{ fontSize: "clamp(3.5rem, 12vw, 10rem)" }}
